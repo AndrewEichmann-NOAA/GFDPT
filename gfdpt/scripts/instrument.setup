@@ -1,0 +1,55 @@
+# aqua AIRS
+SAT=aqua
+SENSOR=airs
+SENSORID=70
+SATSENSOR=${SAT}_${SENSOR}
+NCHAN=281
+
+#---sensor to run :: F18 SSMI/S
+SAT=mtsa
+SENSOR=saphir
+SATSENSOR=${SAT}_${SENSOR}
+NCHAN=6
+SENSORID=13
+
+# npp CrIS
+SAT=npp
+SENSOR=cris
+SENSORID=72
+SATSENSOR=${SAT}_${SENSOR}
+NCHAN=399
+
+#---sensor to run :: ATMS And CrIS
+SAT=npp
+SENSOR=all
+SATSENSOR=${SAT}_${SENSOR}
+NCHAN=421
+SENSORID=75
+
+#---sensor to run :: F18 SSMI/S
+SAT=f18
+SENSOR=ssmis
+SATSENSOR=${SAT}_${SENSOR}
+NCHAN=24
+SENSORID=5
+
+#---sensor to run :: GPM GMI
+SAT=gpm
+SENSOR=gmi
+SATSENSOR=${SAT}_${SENSOR}
+NCHAN=13
+SENSORID=10
+
+#---sensor to run :: H8 AHI
+SAT=h8
+SENSOR=ahi
+SATSENSOR=${SAT}_${SENSOR}
+NCHAN=10
+SENSORID=74
+
+#---sensor to run :: AVHRR global
+SAT=MetOP
+SENSOR=AVHRRGL
+SATSENSOR=avhrrglamv
+NCHAN=1
+SENSORID=99

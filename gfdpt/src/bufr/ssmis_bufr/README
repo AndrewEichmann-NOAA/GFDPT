@@ -1,0 +1,20 @@
+Basically here is what you need to do in order to 
+convert SSMIS BUFR to observed radiance files (FMSDR format) , and then run 
+"colocNWP" and "fwd" on them to generate 
+   1) intermediate colocated GFS file(EDR format) 
+   2) final simulated radiance(FMSDR format)
+
+# 1. Set up data location, where you want to save data (three of them)
+./setupPath.sh
+
+# 2. Create namelist files used by f90 executable files.
+# Attention : 
+#   GFS config files such as gfs_atm_list_*.config and gfs_sfc_list_*.config 
+#   under "config" folder need to be MANUALLY EXAMINED to make sure that these 
+#   GFS forecast files DO cover the entire observation data.
+#
+#
+./generateConfig.sh  f18     
+
+# 3. Run f90 executable files
+./run_gdas.sh  f18
