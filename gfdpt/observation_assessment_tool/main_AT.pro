@@ -32,26 +32,30 @@ sensorOption = 999
 clwoption = 999
 sceneoption =  999 
 readagain = 999
+answerbias = 999
 
 
-sensorOption = 14
+;sensorOption = 8
 
 ; Choose CLW data source'
-clwoption = 1 ;- CLW algorithm'
+;clwoption = 1 ;- CLW algorithm'
 ;clwoption = 2 ;- CLW from NWP'
 ;clwoption = 3 ;- CLW from both'
 
 ;'Choose Scene data source'
 ;sceneoption = 0 ; - New Scene dump file'
-sceneoption = 1 ; - Old Scene file'
+;sceneoption = 1 ; - Old Scene file'
 
 ; 'Read data again?'
-readagain = 1 ;- YES'
+;readagain = 1 ;- YES'
 ;readagain = 2 ;- NO, to reform data'
 ;readagain = 3 ;- NO, to plot data'
 ;readagain = 4 ;- NO, to create data assessment report (must have run steps 1-3 first)'
 
-
+;        Apply radiometric bias correction for CLW regression?'
+;answerbias =  1; - YES'
+;answerbias =  2; - NO'
+	
 
 
 ;###########################
@@ -89,7 +93,7 @@ PRINT,'27 : ASCAT'
 if sensorOption eq 999 then begin
    READ, sensorOption
 endif
-
+help, sensoroption
 ; Set flag to fill value: 999
 optionFlag = 999
 ; Check to see if a right option is chosen.
@@ -250,6 +254,7 @@ PRINT, '1 - Old Scene file'
 if sceneoption eq 999 then begin
    READ, sceneOption
 endif
+help,sceneoption
 
 IF ( sceneOption NE 0 AND sceneOption NE 1 ) THEN BEGIN 
    PRINT, 'Wrong scene option, choose again!'
@@ -269,7 +274,7 @@ PRINT, '4 - NO, to create data assessment report (must have run steps 1-3 first)
 if readagain eq 999 then begin
     READ, readAgain
 endif 
-
+help,readagain
 
 CASE readAgain OF
    1: GOTO, mark_read_data
@@ -323,7 +328,7 @@ ENDIF
 ; Save number of rad files (orbits)
 nOrbits=nRadFiles1
 
-;nOrbits=1
+nOrbits=1
 ;---------------------------------------------
 ; step 2:
 ;   Define data structures and initalize data 
@@ -498,7 +503,10 @@ IF (PLOT_CLRSKY EQ 1) THEN BEGIN
         print,'Apply radiometric bias correction for CLW regression?'
         print,'1 - YES'
         print,'2 - NO'
-        read,answerBias
+	if (answerBias eq 999) then begin
+            read,answerBias
+	endif
+	help,answerbias
         tbc=refRadObs.tb
 
         if (answerBias eq 1) then begin
