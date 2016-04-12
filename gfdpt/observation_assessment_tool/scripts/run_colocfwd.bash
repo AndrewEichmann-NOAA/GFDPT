@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash -x
 #########################################################
 #
 # Description:
@@ -25,7 +25,7 @@ EXE1='../bin/colocNWPwRad'
 EXE2='../bin/fwdlist'
 
 #---generate namelists and list files for colocation codes
-generate_coloc_config.bash ${date}
+./generate_coloc_config.bash ${date}
 #exit
 #---run collocation of ECMWF analysis to observation location
 coloc_nwp_config=${CONF_DIR}/colocNWP_ecmwf_${date}_${sensor}.config
@@ -47,7 +47,7 @@ wait
 #exit 0 
 
 #---generate namelists and list files for fwdlist code
-generate_fwd_config.bash ${date}
+./generate_fwd_config.bash ${date}
 
 #---run fwd calculation with ECMWF analysis as input
 fwd_config=${CONF_DIR}/fwd_ecmwf_${date}_${sensor}.config
