@@ -1,0 +1,37 @@
+&ContrlP_fwd
+    CntrlConfig_fwd%GeophInputFile='/data/home001/dxu/mirs_trunk/data/TestbedData/DynamicData/nwp_analys/f18_ssmis/2013-01-20/NWP_GFSN.SC.D13020.S0100.E0248.B1679394.NS.UAS'
+    CntrlConfig_fwd%Coeff_Path='/data/home001/dxu/mirs_trunk/data/StaticData/CRTMFiles/'
+    CntrlConfig_fwd%InstrConfigFile='/data/home001/dxu/mirs_trunk/data/StaticData/InstrConfigInfo/InstrConfig_f18_ssmis.dat'
+    CntrlConfig_fwd%OutputFile='/data/home001/dxu/mirs_trunk/data/TestbedData/DynamicData/fwd_analys/f18_ssmis/2013-01-20/FWD_GFSN.SC.D13020.S0100.E0248.B1679394.NS.UAS'
+    CntrlConfig_fwd%nprofs2process=1000000
+    CntrlConfig_fwd%SensorID=5
+    CntrlConfig_fwd%ChanSel(1)=1
+    CntrlConfig_fwd%ChanSel(2)=1
+    CntrlConfig_fwd%ChanSel(3)=1
+    CntrlConfig_fwd%ChanSel(4)=1
+    CntrlConfig_fwd%ChanSel(5)=1
+    CntrlConfig_fwd%ChanSel(6)=1
+    CntrlConfig_fwd%ChanSel(7)=1
+    CntrlConfig_fwd%ChanSel(8)=1
+    CntrlConfig_fwd%ChanSel(9)=1
+    CntrlConfig_fwd%ChanSel(10)=1
+    CntrlConfig_fwd%ChanSel(11)=1
+    CntrlConfig_fwd%ChanSel(12)=1
+    CntrlConfig_fwd%ChanSel(13)=1
+    CntrlConfig_fwd%ChanSel(14)=1
+    CntrlConfig_fwd%ChanSel(15)=1
+    CntrlConfig_fwd%ChanSel(16)=1
+    CntrlConfig_fwd%ChanSel(17)=1
+    CntrlConfig_fwd%ChanSel(18)=1
+    CntrlConfig_fwd%ChanSel(19)=1
+    CntrlConfig_fwd%ChanSel(20)=1
+    CntrlConfig_fwd%ChanSel(21)=1
+    CntrlConfig_fwd%ChanSel(22)=1
+    CntrlConfig_fwd%ChanSel(23)=1
+    CntrlConfig_fwd%ChanSel(24)=1
+    CntrlConfig_fwd%iAddDeviceNoise=0
+    CntrlConfig_fwd%iCldOffOrOn=0
+    CntrlConfig_fwd%NoiseFile='/data/home001/dxu/mirs_trunk/data/TestbedData/nedt/f18_ssmis/f18_ssmis_nedt_2013_01_20_aftFM.dat'
+    CntrlConfig_fwd%iPrintMonitor=0
+    CntrlConfig_fwd%LogFile='/data/home001/dxu/mirs_trunk/logs/f18_logFile_2013_01_20.dat'
+/

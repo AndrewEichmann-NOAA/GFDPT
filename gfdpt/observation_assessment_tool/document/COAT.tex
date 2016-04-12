@@ -1,0 +1,750 @@
+\documentclass[10pt]{report}
+\usepackage[margin=1.25in]{geometry}
+\usepackage[titletoc]{appendix}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{dirtree}
+% The following is a dummy icon command
+\newcommand\myicon[1]{{\color{#1}\rule{2ex}{2ex}}}
+% If you have actual icon images, use \includegraphics to include them
+% If you are generating them, put in the appropriate code for them here
+% now we make a command for a folder/file which inserts the icon and its label
+% adjust this as needed. If you only have 2 icons, then you could create
+% a \myfile and \myfolder command with the icon fixed.
+\newcommand{\myfolder}[2]{\myicon{#1}\ {#2}}
+
+\usepackage{hyperref}
+\hypersetup{
+    bookmarks=true,         % show bookmarks bar?
+    unicode=false,          % non-Latin characters in Acrobat’s bookmarks
+    pdftoolbar=true,        % show Acrobat’s toolbar?
+    pdfmenubar=true,        % show Acrobat’s menu?
+    pdffitwindow=false,     % window fit to page when opened
+    pdfstartview={FitH},    % fits the width of the page to the window
+    pdftitle={COAT User's Guide},    % title
+    pdfauthor={Eric S. Maddy},     % author
+    pdfsubject={Manual},   % subject of the document
+    pdfcreator={Eric S. Maddy},   % creator of the document
+    pdfkeywords={Manual} {COAT} {JCSDA}, % list of keywords
+    pdfnewwindow=true,      % links in new window
+    colorlinks=true,       % false: boxed links; true: colored links
+    linkcolor=blue,          % color of internal links (change box color with linkbordercolor)
+    citecolor=green,        % color of links to bibliography
+    filecolor=magenta,      % color of file links
+    urlcolor=cyan           % color of external links
+}
+
+\author{Eric S. Maddy \\ 
+\\\vspace{6pt} Riverside Technology, inc. at NESDIS/JCSDA, \\ NCWCP College Park, MD 20740} \title{{COAT}: The Community Observation Assessment Tool} \date{\today}
+
+\begin{document}
+\maketitle
+\pagenumbering{Roman}
+\tableofcontents
+%\newpage
+%\listoffigures
+%\newpage
+%\listoftables
+\newpage
+\pagenumbering{arabic}
+\chapter{Introduction}
+\section{Getting Started}
+\subsection{Checking out the COAT from orbit machines and SVN}
+To checkout the COAT from the SVN on orbit machines (NESDIS/STAR network at NCWCP): 
+\begin{verbatim} 
+ $ svn checkout \
+  file:///data/home001/dxu/SVN_REPOSITORY/observation_assessment_tool
+\end{verbatim}
+If you do not have an orbit account (STAR local account) and you have a NOAA NEMS email account, you can request one using the STAR IT helpdesk:
+  \url{https://www.star.nesdis.noaa.gov/intranet/helpdesk/index.php}.
+You'll need to ask for an orbit account. You'll also need an orbit account with Fortran and C compilers (ask Kevin G.: orbit272 or orbit273 might be an option).
+
+\subsection{Getting the COAT from S4}
+If you have an account on S4.  The COAT is available on S4-gateway: 
+\begin{verbatim}
+  $ cd {your-installation-path}
+  $ mkdir COAT
+  $ cd COAT
+  $ cp /home/emaddy/COAT/coat.tar ./
+  $ tar -xvf coat.tar
+\end{verbatim}
+\subsection{Software required to run and compile COAT routines}
+\begin{itemize}
+  \item Fortran compiler: ifort, gfortran, g95, xlf, pgi
+  \item C compiler: icc, gcc, xlc, pgcc 
+  \item \LaTeX~and\TeX~packages including pdf\LaTeX
+  \item IDL Version 7 or above
+\end{itemize}
+\newpage
+\subsection{COAT directory structure}
+\dirtree{%
+.1 \myfolder{darkgray}{COAT}.
+.2 \myfolder{cyan}{bin}.
+.2 \myfolder{cyan}{config}.
+.2 \myfolder{cyan}{data}.
+.3 \myfolder{gray}{bias\_coeffs}.
+.3 \myfolder{gray}{crtm\_coeffs}.
+.3 \myfolder{gray}{regr\_coeffs}.
+.3 \myfolder{gray}{static}.
+.3 \myfolder{gray}{TestbedData}.
+.4 \myfolder{lightgray}{edr}.
+.4 \myfolder{lightgray}{edrd}.
+.4 \myfolder{lightgray}{fmsdr}.
+.4 \myfolder{lightgray}{fmsdr\_sim}.
+.4 \myfolder{lightgray}{nwp}.
+.2 \myfolder{cyan}{document}.
+.2 \myfolder{cyan}{images}.
+.2 \myfolder{cyan}{log}.
+.2 \myfolder{cyan}{scripts}.
+.3 \myfolder{gray}{config}.
+.4 \myfolder{lightgray}{template}.
+.3 \myfolder{gray}{lists}.
+.2 \myfolder{cyan}{src}.
+.3 \myfolder{gray}{bufr}.
+.4 \myfolder{lightgray}{amsr2\_bufr}.
+.4 \myfolder{lightgray}{amv\_bufr}.
+.4 \myfolder{lightgray}{bufrlib}.
+.4 \myfolder{lightgray}{gmi\_bufr}.
+.4 \myfolder{lightgray}{ssmis\_bufr}.
+.3 \myfolder{gray}{collocation}.
+.3 \myfolder{gray}{crtm}.
+.4 \myfolder{lightgray}{REL-2.1.3...}.
+.3 \myfolder{gray}{fwd}.
+.3 \myfolder{gray}{idl}.
+.3 \myfolder{gray}{lib}.
+.3 \myfolder{gray}{readers}.
+.3 \myfolder{gray}{regr\_retr}.
+.3 \myfolder{gray}{scenedump}.
+}
+\newpage
+\subsection{Compiling CRTM and COAT routines}
+CRTM REL-2.1.3 is included in the COAT distribution.  The first step in compiling COAT routines is to 
+configure compiler settings and to compile the CRTM.   
+\begin{verbatim}
+  # make CRTM
+  $ cd COAT/src/crtm/REL-2.1.3/
+  $ cd configure/
+  $ source ifort.setup
+  $ cd ..
+  $ make
+  $ make install
+\end{verbatim}
+Once the CRTM library is successfully compiled and the library/module files are installed, the next 
+step is to compile the COAT library routines.  The COAT BUFR library routines ({\tt src/bufr/bufrlib}) 
+require Fortran and C compilers.  You'll need to make sure that the C compiler (variable {\tt CC}) is 
+defined and the architecture (x86 or x86\_64) is compatible with the Fortran compiler used 
+for the compilation of the CRTM.
+\begin{verbatim}
+  # make all COAT routines (output exes are in COAT/bin/)
+  $ cd ../../
+  $ make 
+\end{verbatim}
+
+\chapter{IDL COAT basics}
+\section{IDL COAT input - user defined parameters}
+The COAT user defined parameters are located in: 
+\begin{itemize}
+  \item {\tt configSensorParam.pro}
+  \item {\tt config/configParam\_\{SAT\}\_\{SENSOR\}.pro}
+  \item {\tt main\_AT.pro}
+\end{itemize}
+Not all {\tt configParam\_\{SAT\}\_\{SENSOR\}.pro} files have correct values for 
+all instrument dependent parameters.  The user is required to properly set the number of channels,
+channel frequencies, latitudes and longitudes of valid data, MIN and MAX expected BTs, etc.  Below 
+is a list of parameters that are set for GPM GMI.  
+\begin{verbatim}
+   ; Set map range to plot
+   paramStruct.MIN_LAT = -90
+   paramStruct.MAX_LAT = 90
+   paramStruct.MIN_LON = -180
+   paramStruct.MAX_LON = 180
+
+   ; Set Max profile number and channel number
+   paramStruct.MAX_FOV = 50000L
+   paramStruct.MAX_CHAN = 13L 
+
+   ; Radiance files (obs + sim)
+   paramStruct.radListFile1 = 'meas.list'
+   paramStruct.radListFile2 = 'fwd.list'
+   ; Scene file (collocated NWP profiles to observations) can 
+   ; be scene or scenedump format
+   paramStruct.sceneListFile = 'scene.list'
+
+   ; Bias and standard deviation files
+   paramStruct.biasListFile = 'bias.list'
+   paramStruct.stddevListFile = 'stddev.list'
+
+   ; location of the clw regression coefficients for clear tests
+   paramStruct.clwCoeffPath = './data/regr_coeffs/'
+   ; string array of channel numbers
+   paramStruct.chanNumArr =   $
+       ['1','2','3','4','5','6','7','8','9','10',   $
+       '11','12','13']
+   ; string array of channel frequencies in GHz with polarization (not necc.)
+   paramStruct.chanInfoArr  =  $
+       ['10.65V','10.65H','18.7V','18.7H','23.8V',$
+        '36.5V','36.5H','89.0V','89.0H','165.5V','165.5H',$
+        '183.31V','183.31H']
+   ; minimum BT values to assume are good data
+   paramStruct.minBT_Values =  FLTARR(13) + 20.
+   ; maximum BT values to assume are good data
+   paramStruct.maxBT_Values =  FLTARR(13) + 320.
+   ; maximum ABS(delta.BT = OBS-SIM) values to assume are good data
+   paramStruct.maxDTb_Values =  FLTARR(13) + 20.
+   paramStruct.sensorName = 'GPM_GMI'
+   paramStruct.sensorID= 'gmi'
+   ; array of channels to plot - IDL 0-based index 
+   paramStruct.chPlotArr = INDGEN(13)
+   ; data date
+   paramStruct.date = '2014-06-23'
+   ; Image output dir
+   paramStruct.imageDir     = './images/GPM/'
+
+   ;---histogram trim options for clear
+   ; trimoption (+-ive : scale un-filtered histogram at 
+   ; trimOption*std.dev of Obs-Sim, --ive: use trimValue for 
+   ; ABS(Obs-Sim) trimming
+   paramStruct.histogramOptions.trimOption  = INTARR(13) + 2
+   ; trimValue (if timeOption < 0) use this value for trimming.
+   paramStruct.histogramOptions.trimValue   = FLTARR(13) + 1.
+   ; useforclear - if 0 - don't use channel for trimming "clear" cases.
+   ;               if 1 - use channel for trimming of "clear" cases.
+   paramStruct.histogramOptions.useforclear = [LONARR(13)]
+
+\end{verbatim}
+Other parameters that control filtering for clear, cloudy, and precipitating cases 
+are defined in {\tt configSensorParam.pro}.  These parameters
+are: 
+\begin{verbatim}
+  ; minimum CLW threshold (below CLW_THRESHOLD_MIN is defined as "clear")
+  CLW_THRESHOLD_MIN : 0.05,  $
+  ; max CLW threshold (between CLW_THRESHOLD_MIN and CLW_THRESHOLD_MAX, 
+  ; the scene is defined as being "cloudy", 
+  ; above CLW_THRESHOLD_MAX is defined as a "precipitating")
+  CLW_THRESHOLD_MAX : 0.3,   $
+  ; not currently used
+  RWP_THRESHOLD     : 0.05,  $
+  GWP_THRESHOLD     : 0.05,  $
+\end{verbatim}
+
+The final user defined parameters are in the main script to run the COAT in IDL - {\tt main\_AT.pro}.  
+The parameters that can be selected by users are : 
+\begin{itemize}
+  \item {\tt PLOT\_UNFILTERED} - plot all cases
+  \item {\tt PLOT\_CLRSKY} - plot ``clear'' cases only
+  \item {\tt PLOT\_CLDSKY} - plot ``cloudy'' cases only
+  \item {\tt PLOT\_PCPSKY} - plot ``precipitating'' cases only
+\end{itemize}
+A value of 1 produces .eps output for these types, while a value of 0 turns off .eps output for these scene types.  As discussed above, the thresholds for determining, clear, cloudy and precipitating are set in {\tt configSensorParam.pro}.
+
+\section{IDL COAT}
+See Section~\ref{sec:IDLCOATEx} for examples on how to run the IDL COAT on sample (or other) datasets.
+
+\section{IDL COAT output}
+The COAT produces a large number of \.eps files in {\tt configParam.imagedir} defined in\\ 
+{\tt configParam\_\{SAT\}\_\{SENSOR\}.pro}. 
+These files are then run through the IDL code \\ {\tt Create\_DataAssessmentReport.pro}
+which creates \TeX~formatted files and then calls pdf\LaTeX~to produce 
+two data assessment reports or DARs.  
+\begin{itemize}
+  \item {\tt GPM\_GMI\_DAR\_maps.pdf}: maps of observed BTs, simulated BTs and observed minus simulated BTs 
+    for all channels, and lat/lon limits defined by the user in {\tt configParam*.pro}.
+  \item {\tt GPM\_GMI\_DAR\_stratified.pdf}: table summaries of statistics for all and ``clear-sky'' filtered cases over 
+    ocean as well as scatterplots of observed versus simulated BTs and observed minus simulated BTs as a function of 
+    various parameters.
+\end{itemize}
+
+\chapter{Fortran COAT basics}
+\section{Fortran Routines}
+\begin{itemize}
+  \item {\tt bin/AMVBUFR\_to\_AMVScene} - convert GDAS SATWND BUFR data to AMV scene format.
+  \item {\tt bin/colocNWPwRad} - collocate NWP profiles to satellite observed BT latitude, longitude, viewing geometry/etc.
+  \item {\tt bin/colocNWPsatwind} - collocate NWP wind fields to satellite observed AMV latitude, longitude and pressure.
+  \item {\tt bin/fwd} - compute satellite simulated BTs from NWP MIRS scene file (e.g. from {\tt bin/colocNWPwRad}).
+  \item {\tt bin/fwdlist} - compute satellite simulated BTs from a list of NWP MIRS scene files (e.g. from {\tt bin/colocNWPwRad}). 
+  \item {\tt bin/sceneDump} - extract information from scene file for the COAT (see Section~\ref{SDex}).
+\end{itemize}
+\subsection{NWP Collocation and Forward Operator}
+Section~\ref{sec:COATscripts} provides an overview on how to run NWP collocation and the CRTM forward operator.  This section provides a 
+brief overview of the settings assumed in these steps.
+\subsubsection{NWP Collocation namelist}\label{ssec:NWPColoc}
+The NWP collocation namelist for {\tt colocNWPwRad} is build using a template 
+file that is located in \\
+ {\tt scripts/config/template/COLOC\_NWP\_Template.CONFIG}.
+\begin{verbatim}
+  $ cat COLOC_NWP_Template.CONFIG
+  &ControlNWP
+    RadFileList='OBS_RAD_LIST'
+    atmNWPFilesList='NWP_ATM_LIST'
+    sfcNWPFilesList='NWP_SFC_LIST'
+    pathNWPout='EDR_PATH/DATE/'
+
+    Topogr='../data/static/Topography/topography.bin_sgi'
+    CovBkgFileAtm='../data/static/CovBkgStats/CovBkgMatrxTotAtm_all.dat'
+    norbits2process=1000000
+    LogFile='LOG_PATH/SENSOR_logFile.dat'
+    nprofs2process=1000000
+    sensor_id=SENSORID
+    nwp_source=NWPID
+    Coeff_Path='../data/crtm_coeffs/'
+    BiasFile='../data/static/biasCorrec/biasCorrec_SAT.dat'
+    TuningFile='../data/static/TuningData/TunParams_SAT_SENSOR.in'
+  /
+\end{verbatim}
+Variables in all capitals (OBS\_RAD\_LIST, NWP\_ATM\_LIST, EDR\_PATH, DATE, 
+LOG\_PATH, SENSOR, SAT, SENSORID, NWPID) are set in the script {\tt generate\_coloc\_config.bash} and imported from {\tt paths.setup} and 
+{\tt instrument.setup}.  
+There are three choices for NWPID, 
+\begin{enumerate}
+\item GDAS analysis
+\item GFS 6 hour forecast
+\item ECMWF analysis
+\end{enumerate}
+currently only the options for GFS and ECMWF are available.
+\subsubsection{FWD namelist}
+The FWD model namelist for {\tt fwd} and {\tt fwdlist} is built 
+using a template file that is located in \\
+ {\tt scripts/config/template/FWD\_Template.CONFIG}.
+\begin{verbatim}
+  $ cat FWD_Template.CONFIG
+  &ContrlP_fwd
+    CntrlConfig_fwd%GeophInputFile='EDR_COLOC_NWP_FILE'
+    CntrlConfig_fwd%Coeff_Path='../data/crtm_coeffs/'
+    CntrlConfig_fwd%InstrConfigFile= &
+      'STATIC_DATA/InstrConfigInfo/InstrConfig_SATSENSOR.dat'
+    CntrlConfig_fwd%OutputFile='FMSDR_SIM_RAD_FILE'
+    CntrlConfig_fwd%nprofs2process=1000000
+    CntrlConfig_fwd%SensorID=SENSORID
+    CntrlConfig_fwd%ChanSel(1:NCHAN)=NCHAN*1
+    CntrlConfig_fwd%iAddDeviceNoise=0
+    CntrlConfig_fwd%iCldOffOrOn=0
+    CntrlConfig_fwd%NoiseFile='nedt/NOISE_FILE'
+    CntrlConfig_fwd%iPrintMonitor=0
+    CntrlConfig_fwd%LogFile='LOG_PATH/LOG_FILE'
+  /
+\end{verbatim}
+Similar to the NWP collocation namelist, variables in all capitals (EDR\_COLOC\_NWP\_FILE, STATIC\_DATA, FMSDR\_SIM\_RAD\_FILE, SENSORID, 
+NCHAN, NOISE\_FILE, LOG\_PATH, and LOG\_FILE) are set in the script {\tt generate\_fwd\_config.bash} and imported from {\tt paths.setup} and 
+{\tt instrument.setup}.  
+
+Clouds can be turned on by modifying the template such that 
+{\tt CntrlConfig\_fwd\%iCldOffOrOn=1}.
+
+\subsection{BUFR converters}
+\begin{verbatim}
+  $ ls src/bufr/
+   amv_bufr
+   amsr2_bufr
+   ssmis_bufr
+   gmi_bufr
+\end{verbatim}
+
+\subsection{Scene Dump}
+See Section~\ref{SDex}.
+
+\chapter{Examples}
+\section{Example: Running COAT scripts}\label{sec:COATscripts}
+In the following sections we'll use GPM GMI observations (FMSDRs), collocated NWP from GFS (EDRs), and 
+simulations from the EDRs (FMSDR\_SIMs) as an example of how to run the COAT and produce graphical output 
+and data assessment reports or DARs.
+To run the NWP collocation and forward model steps, you'll first need to have observed satellite instrument 
+FMSDR data.  The data for this example is in \\ {\tt /data/data086/emaddy/dat/observation\_assesment\_tool/}:
+\begin{verbatim}
+   data/TestbedData/fmsdr/gpm_gmi/2014-06-23/
+\end{verbatim}
+however, you could also use your own {\it fmsdr} formatted data. 
+
+General data paths for the COAT binaries are located in the {\tt scripts/} directory 
+in the main COAT directory.  There are a number of .bash scripts and 
+two .setup files which are used to set environment and runtime variables in the COAT.  For instance,
+\begin{verbatim}
+  $ cd scripts
+  $ ls *.bash
+   8 -rwxr-xr-x. 1 emaddy  4333 Aug 20 11:52 get_ecmwfwind.bash
+   8 -rwxr-xr-x. 1 emaddy  5381 Aug 20 11:52 get_ecmwf.bash
+   4 -rwxr-xr-x. 1 emaddy   763 Aug 20 11:52 generate_OBS_list.bash
+   8 -rwxr-xr-x. 1 emaddy  4419 Aug 20 11:52 generate_fwd_config.bash
+   4 -rwxr-xr-x. 1 emaddy  3086 Aug 20 11:52 generate_coloc_config.bash
+   4 -rwxr-xr-x. 1 emaddy  1481 Aug 21 08:48 run_colocfwd.bash
+  12 -rwxr-xr-x. 1 emaddy  9502 Aug 21 08:49 get_gfs_grib2wind.bash
+  12 -rwxr-xr-x. 1 emaddy  8585 Aug 21 08:49 get_gfs_grib1wind.bash
+  16 -rwxr-xr-x. 1 emaddy 14285 Aug 21 08:49 get_gfs_grib1.bash
+  16 -rwxr-xr-x. 1 emaddy 14602 Aug 26 13:48 get_gfs_grib2.bash
+  
+  $ ls *.setup
+   4 -rw-r--r--. 1 emaddy 305 Aug 20 11:52 instrument.setup
+   4 -rw-r--r--. 1 emaddy 708 Aug 27 10:08 paths.setup
+\end{verbatim}
+{\tt paths.setup} defines general paths for the COAT scripts as well as the location of the COAT installation directory.  
+\begin{verbatim}
+  $ cat paths.setup
+  #---basepath to the coat
+  COAT_PATH=/data/data086/emaddy/dat/observation_assessment_tool
+
+  #---sensor dependent data paths
+  #---note that FMSDR, FMSDR_SIM, EDR, and NWP data paths need not be 
+  #   in the same directory as the COAT.
+  FMSDR_DATA_PATH=${COAT_PATH}/data/TestbedData/fmsdr/${SATSENSOR}
+  FMSDR_SIM_DATA_PATH=${COAT_PATH}/data/TestbedData/fmsdr_sim/${SATSENSOR}
+  EDR_DATA_PATH=${COAT_PATH}/data/TestbedData/edr/${SATSENSOR}
+  BUFR_DATA_PATH=${COAT_PATH}/data/TestbedData/bufr/${SATSENSOR}
+  STATIC_DATA=${COAT_PATH}/data/static
+  CONFIG_PATH=${COAT_PATH}/scripts/config
+  LIST_PATH=${COAT_PATH}/scripts/lists
+
+  #---path to NWP binary data (converted from GRIB)
+  NWP_DATA_PATH=${COAT_PATH}/data/TestbedData/nwp
+
+  #---path to binary executables
+  EXE_PATH=${COAT_PATH}/bin
+
+  #---path for log files
+  LOG_PATH=${COAT_PATH}/log
+\end{verbatim}
+In the above example, the FMSDR, FMSDR\_SIM, EDR, and NWP data paths are in the same directory as the COAT; 
+however, this does not always need to be true.  The data files required by the COAT can take up large amounts 
+of disk space and therefore a user may not have enough disk space to house or want all data files in the 
+same directory as the COAT installation.  No worries-data for the COAT can be written 
+anywhere locally accessable by the machine running the COAT.
+
+Instrument parameters and setup variables required by the collocation as well as forward model 
+steps are in the {\tt scripts/instrument.setup}.  Note that the {\tt instrument.setup} 
+variable ``SENSORID'' can be determined from {\tt src/lib/Consts.f90}.
+\begin{verbatim}
+  $ cat instrument.setup
+  #---sensor to run :: GCOMW1 AMSR2
+  SAT=gcomw1
+  SENSOR=amsr2
+  SATSENSOR=${SAT}_${SENSOR}
+  NCHAN=14
+  SENSORID=15
+
+  #---sensor to run :: F18 SSMI/S
+  SAT=f18
+  SENSOR=ssmis
+  SATSENSOR=${SAT}_${SENSOR}
+  NCHAN=24
+  SENSORID=5
+
+  #---sensor to run :: GPM GMI
+  SAT=gpm
+  SENSOR=gmi
+  SATSENSOR=${SAT}_${SENSOR}
+  NCHAN=13
+  SENSORID=10
+\end{verbatim}
+
+\subsection{Dump ECMWF or GFS GRIB to COAT binaries}\label{ssec:GRIBdump}
+This step can currently only be run on orbit machines.  You'll need to collocate NWP to 
+observed FMSDR for the date of observations as well as the previous and following day.  For example,
+for June 23, 2014, we would run:
+\begin{verbatim}
+  $ get_gfs_grib1.bash 20140622
+  $ get_gfs_grib1.bash 20140623
+  $ get_gfs_grib1.bash 20140624
+\end{verbatim}
+to dump GFS 6 hour forecast GRIB files into binary files, and: 
+\begin{verbatim}
+  $ get_ecmwf.bash 20140622
+  $ get_ecmwf.bash 20140623
+  $ get_ecmwf.bash 20140624
+\end{verbatim}
+to dump ECMWF analysis GRIB files into binary files.  After the GRIB files are dumped into binaries, 
+we can then run the NWP collocation routines as well as the forward model simulations.
+
+\subsection{Run NWP collocation and forward model calculations}\label{ssec:scriptNWP}
+After the NWP data is dumped from GRIB1 or 2 to binary, the next steps are to run the NWP collocation 
+and forward model calculation routines.  Assuming that the paths defined in {\tt paths.setup} are correct and 
+the instrument parameters in {\tt instrument.setup} are correct, the bash script \\
+{\tt scripts/run\_colocfwd.bash} will automate these next steps.  Using the same day as we did in 
+Section~\ref{ssec:GRIBdump}, June 23, 2014, we run the collocation and forward model steps as follows:
+\begin{verbatim}
+  $ run_colocfwd.bash gpm_gmi 20140623
+\end{verbatim}
+{\tt run\_colocfwd.bash} will collocate GFS and ECMWF NWP profiles or EDRs to instrument observed FMSDRs 
+in MIRS {\it scene} format (see {\tt src/lib/IO\_Scene.f90} and/or \\{\tt src/idl/mirs\_idl/io\_scene.pro}) 
+and run the CRTM forward model to create simulated FMSDRs (FMSDR\_Sims) in MIRS {\it Measur} format 
+(see {\tt src/lib/IO\_MeasurData.f90} and/or \\{\tt src/idl/mirs\_idl/io\_measur.pro}).
+
+\section{Example: Running the IDL COAT using sample data}\label{sec:IDLCOATEx}
+
+\subsection{Sample data on NESDIS/STAR orbit machines}\label{ssec:OrbitSamp}
+On orbit machines, sample data for the COAT is located in:
+\begin{verbatim}
+  $ cd /data/data086/emaddy/dat/observation_assessment_tool/
+  $ ls 
+  data/TestbedData/edr/gpm_gmi/2014-06-23/
+  data/TestbedData/fmsdr/gpm_gmi/2014-06-23/
+  data/TestbedData/fmsdr_sim/gpm_gmi/2014-06-23/
+\end{verbatim}
+Copy data to your local COAT directory (e.g., {\tt COAT/data/Testbedata/}) and 
+follow the instructions below.  Alternatively you could copy the FMSDR data from above to your 
+local directory and follow the instructions in Sections~\ref{sec:COATscripts} through~\ref{ssec:scriptNWP}.
+
+\subsection{Sample data on S4}\label{ssec:S4Samp}
+On S4, sample data for the COAT is located in:
+\begin{verbatim}
+  /data/emaddy/TestbedData/edr/gpm_gmi/2014-06-23/
+  /data/emaddy/TestbedData/fmsdr/gpm_gmi/2014-06-23/
+  /data/emaddy/TestbedData/fmsdr_sim/gpm_gmi/2014-06-23/
+\end{verbatim}
+Copy data to your local COAT directory (e.g., {\tt COAT/data/Testbedata/}) and 
+follow the instructions below.  On S4, you'll need to be on gateway so you can run IDL.  
+
+\subsection{Next Steps in Running the COAT}\label{ssec:nextStep}
+Once you have data copied locally, can see it from your machine, or have run the COAT scripts on your/sample data 
+(e.g., Section~\ref{sec:COATscripts}), you'll need to make a list of files for 
+the NWP EDRs, observed instrument FMSDRs, and simulated FMSDR\_SIM files.  The following example uses
+NWP GFS scene files from colocNWPwRad and FMSDR\_SIM files resultant from calling the CRTM forward model with 
+those inputs.
+\begin{verbatim}
+  $ cd COAT/
+  $ ls -d -1 ${path-to-data}/edr/gpm_gmi/2014-06-23/*GFS* > scene.list
+  $ ls -d -1 ${path-to-data}/fmsdr/gpm_gmi/2014-06-23/* > meas.list
+  $ ls -d -1 ${path-to-data}/fmsdr_sim/gpm_gmi/2014-06-23/*GFS* > fwd.list
+\end{verbatim}
+Next, modify {\tt COAT/config/configParam\_GPM\_GMI.pro} to point to those list files\footnotemark.
+  
+\begin{verbatim}
+   ; Radiance files (obs + sim)
+   paramStruct.radListFile1 = 'meas.list'
+   paramStruct.radListFile2 = 'fwd.list'
+   ; Scene file
+   paramStruct.sceneListFile = 'scene.list'
+\end{verbatim}
+\footnotetext{Note that the Radiances files in {\tt configParam*.pro} are in the same format.  A user could compare the output of two simulations with slightly modified input geophysical states by selecting:\\\texttt{paramStruct.radListFile1 = 'fwd1.list'\\   paramStruct.radListFile2 = 'fwd2.list',\\} where {\tt fwd1.list} is a list of control FWD simulation files and {\tt fwd2.list} is a list of experiment FWD simulation files with slightly modified input geophysical states.}
+
+The full path to the files and list files has to be specified in the {\tt configParam\_*.pro} file.  
+You'll also need to set the date as well as output directories for 
+images (NOTE: the image directory must exist when running next steps) : 
+\begin{verbatim}
+  configParam.date = '2014-06-23'
+  configParam.imagedir = 'images/gpm_gmi/'
+\end{verbatim} 
+To run the COAT, in IDL, First cd into the COAT directory, make the output directory for the images, and then start IDL: 
+\begin{verbatim}
+  $ cd COAT
+  $ mkdir images/gpm_gmi
+  $ idl
+  IDL--> !PATH = !PATH + ':src/idl/coyote/'
+  IDL-->.r main_AT
+  Choose instrument:
+   1 : NOAA-18/AMSUA&MHS
+   2 : NOAA-19/AMSUA&MHS
+   3 : MetOp-A/AMSUA&MHS
+   4 : MetOp-B/AMSUA/MHS
+   5 : F16/SSMIS
+   6 : F17/SSMIS
+   7 : F18/SSMIS
+   8 : NPP/ATMS
+   9 : AQUA/AMSRE
+  10 : GCOMW1/AMSR2
+  11 : FY3/MWRI
+  12 : FY3/MWHS/MWTS
+  13 : TRMM/TMI
+  14 : GPM/GMI
+  15 : MT/MADRAS
+  16 : MT/SAPHIR
+  17 : WindSat
+  18 : SATWND AMV
+  : 14
+  Choose CLW data source
+  1 - CLW algorithm
+  2 - CLW from NWP
+  3 - CLW from both
+  : 2  ; for now 
+  Choose Scene data source
+  0 - New Scene dump file
+  1 - Old Scene file
+  : 1
+  Read data again?
+  1 - YES
+  2 - NO, to reform data
+  3 - NO, to plot data
+  4 - NO, to create data assessment report (must have run steps 1-3 first)
+  : 1
+\end{verbatim}
+\section{Example: Running {\tt sceneDump} to speed reading of {\it scene} EDR files in COAT}\label{SDex}
+{\tt bin/sceneDump} (or source {\tt src/scenedump/sceneDump.f90}) is a Fortran 90 executable 
+that reads an EDR file in {\it scene} format and dumps the quantities required by the COAT
+to a smaller binary for faster reading.  The code is namelist driven, with the user providing
+a list of scene files ``SceneFileList,'' the location of the output directory ``pathout,'' and 
+the name of a ``LogFile.''
+\begin{verbatim}
+ $ cat scene_dump.nl
+  &ControlSD
+    ! list of NWP GFS or ECMWF scene files from colocNWPwRad
+    SceneFileList='scene.list'  
+    pathout='data/TestbedData/edrd/gpm_gmi/2014-06-23/'
+    LogFile='log/scenedump_logFile.dat'
+  /
+\end{verbatim}
+The code can be invoked from the command line as follows: 
+\begin{verbatim}
+ $ bin/sceneDump < scene_dump.nl
+\end{verbatim}
+Once the code has finished, a user can point to the new dumped scene files and rerun the COAT.  The following example 
+uses NWP GFS collocated scene files as input to {\tt sceneDump}.
+\begin{verbatim}
+  $ ls -d -1 ${path-to-data}/edrd/gpm_gmi/2014-06-23/*GFS* > scene.list
+  $ idl
+  IDL--> !PATH = !PATH + ':src/idl/coyote/'
+  IDL-->.r main_AT
+  Choose instrument:
+  ...
+  Choose Scene data source
+  0 - New Scene dump file
+  1 - Old Scene file
+  : 0
+\end{verbatim}
+
+%\section{Miscellaneous}
+%First thing you'll be working on is a GOES BUFR to FMSDR writer.  
+%See {\tt COAT/src/bufr/} for examples.  These routines link to NCEP BUFR libraries for reading BUFR ({\tt src/bufr/bufrlib/}) and MIRS modules for FMSDR writing 
+%{\tt src/mirs/IO\_MeasurData.f90}).
+%Examples of reading BUFR and conversion into FMSDR format are in: 
+
+%\begin{verbatim}
+%  src/bufr/amsr2_bufr/
+%  src/bufr/gmi_bufr/
+%  src/bufr/ssmis_bufr/
+%  ...
+%\end{verbatim}
+\begin{appendices}
+\chapter{Running Scatterometers through the COAT}
+\section{IDL COAT basics for Scatterometers}
+See Appendix~\ref{chpt:AMVCOAT}.  You'll need to add configuration for the 
+sensor in {\tt config/configParam\_SAT\_SENSOR.pro}, 
+{\tt importConfigParam.pro}, the 
+sensor to the user-selectable list in and also a link 
+to the AMV assessment GOTO statement in {\tt main\_AT.pro}.  
+~~\\~~\\
+Examples of IDL 
+configuration for ISS\_RapidScat are in {\tt config/configParam\_ISS\_RapidScat.pro}.
+\section{Fortran COAT basics for Scatterometers}
+
+For surface wind scatterometers, the COAT uses the atmospheric motion vector 
+Fortran and IDL types described in Appendix~\ref{chpt:AMVCOAT}.  
+{\bf Under construction...}
+
+\chapter{Running AMV through the COAT}\label{chpt:AMVCOAT}
+\section{IDL COAT basics for AMV}
+\subsection{IDL COAT input for AMV - user defined parameters}
+User defined parameters for AMV data are located in {\tt config/configParam\_AMV.pro}.
+\begin{verbatim}
+   $ cd config/
+   $ cat configParam_AMV.pro
+   ; Set map range to plot
+   paramStruct.MIN_LAT = -90
+   paramStruct.MAX_LAT = 90
+   paramStruct.MIN_LON = -180
+
+   paramStruct.sensorName    = 'AMV'
+   paramStruct.sensorID      = 'AMV'
+   paramStruct.date          = '20140401_05'
+
+   ; AMVScene files
+   paramStruct.AMVsceneListFile = 'amvscene00z.list'
+   ;---for ECMWF collocated NWP winds to AMV locations/pressures
+   paramStruct.NWPsceneListFile = 'nwpscene00z.list.ecm'
+
+   ; unique options for AMV
+   amvOptions = {figPath: './images/amv/', $  ; output path for figures
+                 nwpStr: 'ECMWF', $           ; NWP string for labels
+                 TimeStr: '00', $             ; cycle time
+                 figStr: '', $                ; dummy
+                 date: paramStruct.date, $    ; date string from above
+                 pngOrderflag: 1, $           ; IDL flag to order png files
+                 psorpng: 1, $                ; ps=1, png=0
+                 qualityMark: 0, $            ; apply GSI quality flag QC
+                 gsiblacklist: 0, $           ; use GSI blacklisting 
+                 highlevel: 0, $              ; plot winds p<500hPa
+                 lowlevel: 0, $               ; plot winds p>=500hPa
+                 ecmwfqi: 0}                  ; use ECMWF QI settings
+
+   ;---whatever floats your boat
+   amvOptions.figStr = paramStruct.date + '_' + $
+                       amvOptions.TimeStr + '_' + amvOptions.nwpStr ;  + 'qcmbl'
+
+   ;---copy amvOptions structure to paramStruct structure
+   paramStruct.amvOptions    = amvOptions
+\end{verbatim}  
+\subsection{Running the IDL COAT for AMV}
+Running the COAT for AMV/SATWND data in IDL is similar to running radiance/BT data sets.  
+\begin{verbatim}
+  $ cd COAT
+  $ mkdir images/amv/
+  $ idl
+  IDL--> !PATH = !PATH + ':src/idl/coyote/'
+  IDL-->.r main_AT
+  Choose instrument:
+  ...
+  18 : SATWND AMV
+  : 18
+  Read AMV data again?
+  1 - YES
+  2 - NO, to plot unfiltered data
+  3 - NO, to plot filtered GSI QC'd blacklisted
+  4 - NO, to plot low level filtered
+  5 - NO, to plot high level filtered
+  : 1
+\end{verbatim}
+\subsection{IDL COAT output for AMV}
+Based on the options selected in {\tt config/configParam\_AMV.pro}, the COAT either
+produces output .eps for .png files.  These are then concatenated using 
+pdf\LaTeX into two data assessment reports or DARs for the AMV data :
+\begin{itemize}
+  \item {\tt AMV\_DAR\_maps.pdf}
+  \item {\tt AMV\_DAR\_stratified.pdf}
+\end{itemize}
+\section{Fortran COAT basics for AMV}
+\subsection{SATWND BUFR Converter}
+{\tt bin/AMVBUFR\_to\_AMVScene} is a namelist driven executable that reads NCEP BUFR SATWND data and converts it to MIRS {\it sceneAMV} format
+ (see {\tt src/lib/IO\_SceneAMV.f90} and/or \\
+{\tt src/idl/mirs\_idl/io\_sceneamv.pro}).  An example namelist for the BUFR to {\it sceneAMV} converter 
+is given below.
+\begin{verbatim}
+  $ cat bufr_satwnddump.nl
+  &ControlBUFRdump
+     ! list of GDAS SATWND BUFR data files (full path)
+     BUFRFilesList='bufr_gdas_2014-04-14.list'
+     ! GSI Error table for conventional observations (including SATWNDS)
+     ErrorTableFile='prepobs_errtable.global'
+     ! output path for binary sceneAMV data
+     pathBinout='data/TestbedData/amv/2014-04-14/'
+  /
+\end{verbatim}
+From the command line, the routine can be run as follows.
+\begin{verbatim}
+  $ bin/AMVBUFR_to_AMVScene < bufr_satwnddump.nl 
+\end{verbatim}
+\subsection{NWP Collocation}
+NWP collocation/interpolation to AMV latitude, longitude and pressure is performed in the routine {\tt bin/colocNWPsatwind} in the COAT main directory.
+\begin{verbatim}
+  $ ls -d -1 data/TestbedData/amv/2014-04-14/*ecmwf* > satwnd_windNWP_2014-04-01.list_ecmwf
+  $ cat coloc_NWP_AMV.CONFIG
+   &ControlNWP
+     ! list of SATWND converted BUFR files
+     WindFileList=OBS_WIND_LIST    ! 'satwnd_windNWP_2014-04-01.list_ecmwf'
+     atmNWPFilesList='NWP_ATM_LIST'
+     sfcNWPFilesList='NWP_SFC_LIST'
+     windNWPFilesList='NWP_WIND_LIST'
+     pathNWPout='EDR_PATH/DATE/'
+     CovBkgFileAtm='../data/static/CovBkgStats/CovBkgMatrxTotAtm_all.dat'
+     norbits2process=1000000
+     LogFile='LOG_PATH/amvlog.dat'
+     nprofs2process=1000000
+     sensor_id=6
+     nwp_source=NWPID
+   /
+\end{verbatim}
+Simliar to the examples given in Section~\ref{ssec:NWPColoc}, the variables in all 
+capitals (OBS\_WIND\_LIST, NWP\_ATM\_LIST, NWP\_SFC\_LIST, NWP\_WIND\_LIST, EDR\_PATH, DATE, 
+LOG\_PATH, NWPID) are set in the script {\tt generate\_coloc\_config.bash} and imported from
+{\tt paths.setup} and {\tt instrument.setup}.  
+
+\end{appendices}
+
+\end{document}
+

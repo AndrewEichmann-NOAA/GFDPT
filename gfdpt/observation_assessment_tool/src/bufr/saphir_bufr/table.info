@@ -1,0 +1,110 @@
+.------------------------------------------------------------------------------.
+| ------------   USER DEFINITIONS FOR TABLE-A TABLE-B TABLE D   -------------- |
+|------------------------------------------------------------------------------|
+| MNEMONIC | NUMBER | DESCRIPTION                                              |
+|----------|--------|----------------------------------------------------------|
+|          |        |                                                          |
+| NC003010 | A50218 | MSG TYPE SAPHIR BT OBSERVATIONS (E.S. Maddy 11/21/2014)  |
+|          |        |                                                          |
+| SEQNUM   | 035195 | CHANNEL SEQUENCE NUMBER                                  |
+| TAPQ     | 008070 | TOVS/ATOVS PRODUCT QUALIFIER                             |
+| OGCE     | 001033 | IDENTIFICATION OF ORIGINATING/GENERATING CENTRE          |
+| GSES     | 001034 | IDENTIFICATION OF ORIGINATING/GENERATING SUB-CENTRE      |
+| SAID     | 001007 | SATELLITE IDENTIFIER                                     |
+| SIID     | 002019 | SATELLITE INSTRUMENTS                                    |
+| ORBN     | 005040 | ORBIT NUMBER                                             |
+| SACV     | 025075 | SATELLITE ANTENNA CORRECTIONS VERSION NUMBER             |
+| SLNM     | 005041 | SCAN LINE NUMBER                                         |
+| FOVN     | 005043 | FIELD OF VIEW NUMBER                                     |
+| MJFC     | 025070 | MAJOR FRAME COUNT                                        |
+| SLQF     | 033110 | SCAN LINE QUALITY FLAG FOR SAPHIR/MADRAS                 |
+| PLMS     | 033111 | PAYLOAD MODE FOR SAPHIR                                  |
+| YEAR     | 004001 | YEAR                                                     |
+| MONTH    | 004002 | MONTH                                                    |
+| DAY      | 004003 | DAY                                                      |
+| HOUR     | 004004 | HOUR                                                     |
+| MINUTE   | 004005 | MINUTE                                                   |
+| SECO     | 004006 | SECOND                                                   |
+| CLATH    | 005001 | LATITUDE (HIGH ACCURACY)                                 |
+| CLONH    | 006001 | LONGITUDE (HIGH ACCURACY)                                |
+| SELV     | 007001 | HEIGHT OF STATION                                        |
+| SAZA     | 007024 | SATELLITE ZENITH ANGLE                                   |
+| BEARAZ   | 005021 | BEARING OR AZIMUTH (DEGREE TRUE)                         |
+| SOZA     | 007025 | SOLAR ZENITH ANGLE                                       |
+| SOLAZI   | 005022 | SOLAR AZIMUTH (DEGREE TRUE)                              |
+| AGIND    | 025081 | INCIDENCE ANGLE                                          |
+| SATMOD   | 033113 | SATELLITE MODE FOR SAPHIR/MADRAS                         |
+| RAID     | 002151 | RADIOMETER IDENTIFIER                                    |
+| TMINST   | 012064 | INSTRUMENT TEMPERATURE                                   |
+| INCN     | 002150 | TOVS/ATOVS/AVHRR INSTRUMENTATION CHANNEL NUMBER          |
+| LOGRCW   | 025076 | LOG-10 OF CHANNEL WAVENUMBER FOR ATOVS                  |
+| BWCC1    | 025077 | BANDWIDTH CORRECTION COEFFICIENT 1 FOR ATOVS             |
+| BWCC2    | 025078 | BANDWIDTH CORRECTION COEFFICIENT 2 FOR ATOVS             |
+| CQFSM    | 033114 | CHANNEL QUALITY FLAG FOR SAPHIR/MADRAS                   |
+| CFSM     | 033115 | CALIBRATION FLAGS FOR SAPHIR/MADRAS                      |
+| GLNT     | 008065 | SUN-GLINT INDICATOR                                      |
+| SFLG     | 013040 | SURFACE FLAG                                             |
+| TMBR     | 012063 | BRIGHTNESS TEMPERATURE                                   |
+| SAPIN    | 310197 | SAPHIR CHANNEL TB SEQUENCE - TABLE D entry               |
+| YYMMDD   | 301011 | YEAR, MONTH, DAY SEQUENCE - TABLE D entry                |
+|------------------------------------------------------------------------------|
+| MNEMONIC | SEQUENCE                                                          |
+|----------|-------------------------------------------------------------------|
+| SAPIN    | INCN   LOGRCW  BWCC1  BWCC2  CQFSM   CFSM                         |
+| SAPIN    | GLNT   SFLG    201132 202129  TMBR   202000 201000                |
+|          |                                                                   |
+| NC003010 | TAPQ    OGCE    GSES   TAPQ    OGCE   GSES   SAID    SIID         |
+| NC003010 | ORBN    SACV    201133 SLNM    201000 FOVN   MJFC    SLQF         |
+| NC003010 | PLMS    YYMMDD  HOUR   MINUTE  202131                             |
+| NC003010 | 201138  SECO    201000 202000  CLATH  CLONH  202126  SELV         |
+| NC003010 | 202000  SAZA    BEARAZ SOZA    SOLAZI                             |
+| NC003010 | AGIND   SATMOD  RAID   TMINST  RAID   TMINST RAID    TMINST       |
+| NC003010 | RAID    TMINST "SAPIN"6
+|          |                                                                   |
+| YYMMDD   | YEAR MONTH DAY                                                    |
+|------------------------------------------------------------------------------|
+| MNEMONIC | SCAL | REFERENCE   | BIT | UNITS                    |-------------|
+|----------|------|-------------|-----|--------------------------|-------------|
+|          |      |             |     |                          |-------------|
+| TAPQ     |    0 |           0 |   4 | Code table               |-------------|
+| SACV     |    0 |           0 |   5 | Numeric                  |-------------|
+| SATMOD   |    0 |           0 |   4 | Numeric                  |-------------|
+| PLMS     |    0 |           0 |   3 | Code table               |-------------|
+| RAID     |    0 |           0 |  11 | CODE TABLE               |-------------|
+| MJFC     |    0 |           0 |   4 | Numeric                  |-------------|
+| SLQF     |    0 |           0 |  10 | Flag table               |-------------|
+| SAID     |    0 |           0 |  10 | Code table               |-------------|
+| OGCE     |    0 |           0 |   8 | Code table               |-------------|
+| INCN     |    0 |           0 |   6 | Code table               |-------------|
+| SIID     |    0 |           0 |  11 | Code table               |-------------|
+| SAZA     |    2 |       -9000 |  15 | DEGREES                  |-------------|
+| SOZA     |    2 |       -9000 |  15 | DEGREES                  |-------------|
+| BEARAZ   |    2 |           0 |  16 | DEGREES TRUE             |-------------|
+| SOLAZI   |    2 |           0 |  16 | DEGREES TRUE             |-------------|
+| YEAR     |    0 |           0 |  12 | Year                     |-------------|
+| MONTH    |    0 |           0 |   4 | Month                    |-------------|
+| DAY      |    0 |           0 |   6 | Day                      |-------------|
+| HOUR     |    0 |           0 |   5 | Hour                     |-------------|
+| MINUTE   |    0 |           0 |   6 | Minute                   |-------------|
+| SECO     |    0 |           0 |   6 | Second                   |-------------|
+| CLATH    |    5 |    -9000000 |  25 | Degree                   |-------------|
+| SLNM     |    0 |           0 |   8 | Numeric                  |-------------|
+| FOVN     |    0 |           0 |   8 | Numeric                  |-------------|
+| CLONH    |    5 |   -18000000 |  26 | Degree                   |-------------|
+| TMBR     |    1 |           0 |  12 | K                        |-------------|
+| TMINST   |    1 |           0 |  12 | KELVIN                   |-------------|
+| SELV     |    0 |        -400 |  15 | METERS                   |-------------|
+| AGIND    |    3 |           0 |  17 | Degree                   |-------------|
+| SEQNUM   |    0 |           0 |  32 | CCITT IA5                |-------------|
+| GSES     |    0 |           0 |   8 | CODE TABLE               |-------------|
+| ORBN     |    0 |           0 |  24 | NUMERIC                  |-------------|
+| LOGRCW   |    8 |           0 |  30 | LOG (M-1)                |-------------|
+| BWCC1    |    5 |     -100000 |  18 | NUMERIC                  |-------------|
+| BWCC2    |    5 |           0 |  17 | NUMERIC                  |-------------|
+| CQFSM    |    0 |           0 |  11 | Flag Table               |-------------|
+| CFSM     |    0 |           0 |   3 | Code Table               |-------------|
+| SFLG     |    0 |           0 |   4 | Code Table               |-------------|
+| GLNT     |    0 |           0 |   2 | Code Table               |-------------|
+`------------------------------------------------------------------------------'
+
+
