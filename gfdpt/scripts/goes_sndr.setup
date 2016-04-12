@@ -1,9 +1,0 @@
-
-#---sensor to run :: GOES 1? SNDR D1, D2, D3, D4 (last one picked)
-# make sure SENSORID goes with SENSOR (src/lib/Consts.f90)
-SAT=goesGID
-SENSOR=sndrdDID
-SENSORID=SID
-SATSENSOR=${SAT}_${SENSOR}
-NCHAN=18
-

@@ -1,6 +1,0 @@
-&ReadBufrATMS
-    FMSDRfile='/disks/data086/emaddy/dat/coat3/src/bufr/atms_bufr/FMSDR.npp.atms.2013012000.hr'
-    fileBUFR='/disks/data086/emaddy/dat/coat3/src/bufr/atms_bufr/atms.gdas.2014100500'
-    pathFMSDR='/disks/data086/emaddy/dat/coat3/src/bufr/atms_bufr/'
-    InstrConfigFile='/disks/data086/emaddy/dat/coat3/data/static/InstrConfigInfo/InstrConfig_npp_atms.dat'
-/
