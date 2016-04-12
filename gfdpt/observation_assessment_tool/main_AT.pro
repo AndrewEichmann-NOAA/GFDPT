@@ -27,6 +27,33 @@
 ; Specify locally-defined util code.
 @AT_Util.pro
 @emissret/train_reg.pro
+
+sensorOption = 999
+clwoption = 999
+sceneoption =  999 
+readagain = 999
+
+
+sensorOption = 14
+
+; Choose CLW data source'
+clwoption = 1 ;- CLW algorithm'
+;clwoption = 2 ;- CLW from NWP'
+;clwoption = 3 ;- CLW from both'
+
+;'Choose Scene data source'
+;sceneoption = 0 ; - New Scene dump file'
+sceneoption = 1 ; - Old Scene file'
+
+; 'Read data again?'
+readagain = 1 ;- YES'
+;readagain = 2 ;- NO, to reform data'
+;readagain = 3 ;- NO, to plot data'
+;readagain = 4 ;- NO, to create data assessment report (must have run steps 1-3 first)'
+
+
+
+
 ;###########################
  mark_chooseSensor:
 ;###########################
@@ -58,8 +85,10 @@ PRINT,'24 : NPP CRIS(399 channel)'
 PRINT,'25 : H8 AHI(10 IR channel)'
 PRINT,'26 : ISS RAPIDSCAT'
 PRINT,'27 : ASCAT'
-sensorOption = 0S
-READ, sensorOption
+;sensorOption = 0S
+if sensorOption eq 999 then begin
+   READ, sensorOption
+endif
 
 ; Set flag to fill value: 999
 optionFlag = 999
@@ -203,7 +232,9 @@ PRINT, 'Choose CLW data source'
 PRINT, '1 - CLW algorithm'
 PRINT, '2 - CLW from NWP'
 PRINT, '3 - CLW from both'
-READ, clwOption
+if clwoption eq 999 then begin
+    READ, clwOption
+endif
 help, clwOption
 IF ( clwOption NE 1 AND clwOption NE 2 AND clwOption NE 3) THEN BEGIN 
    PRINT, 'Wrong CLW option, choose again!'
@@ -216,7 +247,9 @@ ENDIf
 PRINT, 'Choose Scene data source'
 PRINT, '0 - New Scene dump file'
 PRINT, '1 - Old Scene file'
-READ, sceneOption
+if sceneoption eq 999 then begin
+   READ, sceneOption
+endif
 
 IF ( sceneOption NE 0 AND sceneOption NE 1 ) THEN BEGIN 
    PRINT, 'Wrong scene option, choose again!'
@@ -233,7 +266,11 @@ PRINT, '2 - NO, to reform data'
 PRINT, '3 - NO, to plot data'
 PRINT, '4 - NO, to create data assessment report (must have run steps 1-3 first)'
 
-READ, readAgain
+if readagain eq 999 then begin
+    READ, readAgain
+endif 
+
+
 CASE readAgain OF
    1: GOTO, mark_read_data
    2: BEGIN
@@ -347,7 +384,7 @@ stats_Unfiltered = stats_ClearSky  ; copy empty structure for unfiltered
 stats_Precip     = stats_ClearSky
 stats_Cloudy     = stats_ClearSky
 
-PLOT_UNFILTERED = 1
+PLOT_UNFILTERED = 1 ; ???
 PLOT_CLRSKY     = 1
 PLOT_FILTER     = 1
 PLOT_CLDSKY     = 0
@@ -381,7 +418,7 @@ IF (sensorID eq 'f18' or sensorID eq 'gmi') THEN BEGIN
 ;  refSceneData.emissanlvec = emisreg
    emisVec = refSceneData.emissvec-refSceneData.emissvec
    tbc=refRadObs.tb
-   retrieve_edr, 'em', tbc, refSceneData.sfcTypeVec, clwCoeffPath, sensorID, $
+   retrieve_edr, 'em', tbc,  refSceneData.Tskinvec,refSceneData.sfcTypeVec, clwCoeffPath, sensorID, $
                  refRadObs.angle, refRadObs.scanPos, refRadObs.lat, emisVec
    refSceneData.emissanlvec = emisVec
 ENDIF ELSE  refSceneData.emissanlvec = refSceneData.emissvec
