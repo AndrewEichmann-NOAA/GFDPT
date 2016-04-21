@@ -85,6 +85,11 @@ cbt=8
   lon1=-180
   lon2=180
  fi
+ if [ $7 -gt 180 ]; then
+  export lonmod=`expr $7 \- 360`
+else
+  export lonmod=$7
+fi  
 #exptstd=/nco/pmb/wx12gs/grads/bb/testk
 #  if [ $time1 = $ICdate ] ; then
 # inc=0
@@ -149,7 +154,7 @@ cat << EOF > mapset.gs
 ***vkk*'d skip(ugrdprs.1*1.94,1,1);vgrdprs.1*1.94'
 'print'
 *'printim ${title1}_${time1}_${lev_select}_tmp_${8}_${lat1}_${lon1}.gif gif x800 y600'
-'printim ${title1}_${time1}_${lev_select}_tmp_${8}_${6}_${7}.gif gif x800 y600'
+'printim ${title1}_${time1}_${lev_select}_tmp_${8}_${6}_${lonmod}.gif gif x800 y600'
 'c'
 'set grads off'
 *'set clevs 5 10 15 20 25 30 35 40 45 50 55 60'
@@ -167,7 +172,7 @@ cat << EOF > mapset.gs
 ***vkk*'d skip(ugrdprs.2*1.94,1,1);vgrdprs.2*1.94'
 'print'
 *'printim ${title2}_${time1}_${lev_select}_tmp_${8}_${lat1}_${lon1}.gif gif x800 y600'
-'printim ${title2}_${time1}_${lev_select}_tmp_${8}_${6}_${7}.gif gif x800 y600'
+'printim ${title2}_${time1}_${lev_select}_tmp_${8}_${6}_${lonmod}.gif gif x800 y600'
 'c'
 'set grads off'
 *'set clevs 5 10 15 20 25 30 35 40 45 50 55 60'
@@ -186,7 +191,7 @@ cat << EOF > mapset.gs
 ***vkk*'d skip(u$vare.3*1.94,1,1);v$vare.3*1.94'
 'print'
 *'printim ${title3}_${time1}_${lev_select}_tmp_${8}_${lat1}_${lon1}.gif gif x800 y600'
-'printim ${title3}_${time1}_${lev_select}_tmp_${8}_${6}_${7}.gif gif x800 y600'
+'printim ${title3}_${time1}_${lev_select}_tmp_${8}_${6}_${lonmod}.gif gif x800 y600'
 'c'
 'set gxout contour'
 'set grads off'
@@ -215,7 +220,7 @@ cat << EOF > mapset.gs
 *
 'print'
 *'printim ${title3}-${title2}_${time1}_${lev_select}_tmp_${8}_${lat1}_${lon1}.gif gif x800 y600'
-'printim ${title3}-${title2}_${time1}_${lev_select}_tmp_${8}_${6}_${7}.gif gif x800 y600'
+'printim ${title3}-${title2}_${time1}_${lev_select}_tmp_${8}_${6}_${lonmod}.gif gif x800 y600'
 'c'
 'set gxout contour'
 'set grads off'
@@ -240,7 +245,7 @@ cat << EOF > mapset.gs
 *
 'print'
 *'printim ${title2}-${title1}_${time1}_${lev_select}_tmp_${8}_${lat1}_${lon1}.gif gif x800 y600'
-'printim ${title2}-${title1}_${time1}_${lev_select}_tmp_${8}_${6}_${7}.gif gif x800 y600'
+'printim ${title2}-${title1}_${time1}_${lev_select}_tmp_${8}_${6}_${lonmod}.gif gif x800 y600'
 'disable print out.gr'
 'set grads off'
 'quit'
