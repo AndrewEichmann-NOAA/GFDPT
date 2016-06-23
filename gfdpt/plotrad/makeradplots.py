@@ -61,17 +61,12 @@ def plotglobal(m,obs,obsxpt,obsypt,titlestr,vmin,vmax,targetvars,targetamps,targ
     plt.close('all')
 ################# END PLOTGLOBAL ###################################
 
-def plottarget(obs,obslats,obslons,maxlat,minlat,maxlon,minlon,titlestr,vmin,vmax,\
+def plottarget(m,obs,obsxpt,obsypt,titlestr,vmin,vmax,\
         targetvar,targetamp,targetlon,targetlat,outfilename):
 
-#    m = Basemap(projection='mill',llcrnrlat=minlat,urcrnrlat=maxlat,\
-#		                            llcrnrlon=minlon,urcrnrlon=maxlon)
-#    m = Basemap(projection='stere',llcrnrlat=minlat,urcrnrlat=maxlat,\
-#		                            llcrnrlon=minlon,urcrnrlon=maxlon, \
+#    m = Basemap(projection='stere',width=4800000,height=3600000,\
+#                                            resolution='c',\
 #                                            lon_0=targetlon,lat_0=targetlat)
-    m = Basemap(projection='stere',width=4800000,height=3600000,\
-                                            resolution='c',\
-                                            lon_0=targetlon,lat_0=targetlat)
 
     maxlat=90.0
     minlat=-90.0
@@ -93,16 +88,11 @@ def plottarget(obs,obslats,obslons,maxlat,minlat,maxlon,minlon,titlestr,vmin,vma
     m.drawmeridians(meridianlons,labels=[True,True,True,True])
     m.drawparallels(parallellats,labels=[True,True,True,True]) 
 
-#    if obs.size > 0 :
-#    cNorm  = colors.Normalize(vmin=min(obs), vmax=max(obs))
-
     cNorm  = colors.Normalize(vmin=vmin, vmax=vmax)
     scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=rnbw)
 
     scalarMap.set_array(obs)
     colorVal = scalarMap.to_rgba(obs)
-
-    obsxpt,obsypt=m(obslons,obslats)
 
 #    foo=m.scatter(obsxpt,obsypt,c=obs,cmap=cm,marker='.',s=300,edgecolors='black',linewidth=0.15) 
 #    foo=m.scatter(obsxpt,obsypt,c=obs,cmap=cm,marker='.',s=300,edgecolors='black',linewidth=0.15) 
@@ -263,9 +253,8 @@ for ichan in [6,7]:
 
     for i,val in enumerate(obslons):
         if val > 180.0  : obslons[i] = val - 360.0
+
     obsxpt,obsypt=m(obslons,obslats)
-
-
     
     field=diagradanl.obs[idxanl]
     titlestr = 'Tb ana ' + date + ' ' + instrument + ' Ch ' + str(ichan)
@@ -313,31 +302,20 @@ for ichan in [6,7]:
         targetlat=targetlats[i]
         targetlon=targetlons[i]
 
-        radius=15
+        
+        if abs(targetlat) > 80: continue # workaround for basemap bug
 
-        maxlat=targetlat+radius
-        minlat=targetlat-radius
+        m = Basemap(projection='stere',width=4800000,height=3600000,\
+                                            resolution='c',\
+                                            lon_0=targetlon,lat_0=targetlat)
 
-        if abs(targetlat) > 50: radius = radius * 2
- 
-        maxlon=targetlon+radius
-        minlon=targetlon-radius
+        obsxpt,obsypt=m(obslons,obslats)
 
-
-        if maxlat > 90.0: maxlat = 90.0
-        if minlat < -90.0: minlat = -90.0
-
-        newlons=diagradanl.lon[idxanl]
-        newlats=diagradanl.lat[idxanl]
         newobs=diagradanl.obs[idxanl]
 
-        for j,lontmp in enumerate(newlons):
-            if lontmp > 180.0  : newlons[j] = lontmp - 360.0
 
         obs=newobs
-        obslats=newlats
-        obslons=newlons
-        if (obs.size > 0) and (abs(targetlat) < 80): # targetlat for workaround basemap bug
+        if (obs.size > 0) :
             if BorA== 'anl' :
         	titlestr = 'Tb ana ' + date + ' ' + instrument + ' Ch ' + str(ichan) + ' ' + val
         	outfilename=date+'/'+instrument+'_ana_obs_Ch%02d' % ichan + '_' + date + '_' + \
@@ -352,7 +330,7 @@ for ichan in [6,7]:
 
             if makeplots:
                 print 'generating ' + outfilename 
-                plottarget(obs,obslats,obslons,maxlat,minlat,maxlon,minlon,titlestr,vmin,vmax,targetvars[i], \
+                plottarget(m,obs,obsxpt,obsypt,titlestr,vmin,vmax,targetvars[i], \
                         targetamps[i],targetlon,targetlat,outfilename)
 
             if BorA== 'anl' :
@@ -372,7 +350,7 @@ for ichan in [6,7]:
             tableline = tableline + outfilename
             if makeplots:
                 print 'generating ' + outfilename 
-                plottarget(omb_bc,obslats,obslons,maxlat,minlat,maxlon,minlon,titlestr,vmin,vmax,targetvars[i], \
+                plottarget(m,omb_bc,obsxpt,obsypt,titlestr,vmin,vmax,targetvars[i], \
                     targetamps[i],targetlon,targetlat,outfilename)
 
             tableline = tableline + '"></td><td><img src="'
@@ -384,7 +362,7 @@ for ichan in [6,7]:
             tableline = tableline + outfilename
             if makeplots:
                 print 'generating ' + outfilename 
-                plottarget(omb_bc,obslats,obslons,maxlat,minlat,maxlon,minlon,titlestr,vmin,vmax,targetvars[i], \
+                plottarget(m,omb_bc,obsxpt,obsypt,titlestr,vmin,vmax,targetvars[i], \
                     targetamps[i],targetlon,targetlat,outfilename)
 
             tableline = tableline +  '"></td></tr>\n'
