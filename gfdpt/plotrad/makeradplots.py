@@ -130,8 +130,8 @@ instrument='atms_npp'
 BorA='anl'
 #BorA='ges'
 
-makeplots=True
-#makeplots=False
+#makeplots=True
+makeplots=False
 
 # get the gribxtremes points
 
@@ -203,10 +203,14 @@ for i,val in enumerate(targetlons):
 targetxpt,targetypt=m(targetlons,targetlats)
 
 
-tablelines=[[] for x in xrange(numgepoints)]
+omatargetimages=[[] for x in xrange(numgepoints)]
+ombtargetimages=[[] for x in xrange(numgepoints)]
+anlobstargetimages=[[] for x in xrange(numgepoints)]
+gesobstargetimages=[[] for x in xrange(numgepoints)]
 
-#for ichan in channels:
-for ichan in [6,7]:
+
+for ichan in channels:
+#for ichan in [6,7]:
 
     # get indices of all matching channels
     idxallanl = diagradanl.channel == ichan
@@ -311,43 +315,84 @@ for ichan in [6,7]:
 
         obsxpt,obsypt=m(obslons,obslats)
 
-        newobs=diagradanl.obs[idxanl]
 
+        obsanl=diagradanl.obs[idxanl]
 
-        obs=newobs
-        if (obs.size > 0) :
-            if BorA== 'anl' :
-        	titlestr = 'Tb ana ' + date + ' ' + instrument + ' Ch ' + str(ichan) + ' ' + val
-        	outfilename=date+'/'+instrument+'_ana_obs_Ch%02d' % ichan + '_' + date + '_' + \
-                        val + '_' + str(targetlat) + '_' + str(targetlon) + '.jpg'
-            else:
-        	titlestr = 'Tb ges ' + date + ' ' + instrument + ' Ch ' + str(ichan) + ' ' + val
-        	outfilename=date+'/'+instrument+'_ges_obs_Ch%02d' % ichan + '_' + date + '_' + \
-                        val + '_' + str(targetlat) + '_' + str(targetlon) + '.jpg'
+        if (obsanl.size > 0) :
 
-            vmin=min(obs)
-	    vmax=max(obs)
+       	    titlestr = 'Tb ana ' + date + ' ' + instrument + ' Ch ' + str(ichan) + ' ' + val
+            outfilename=date+'/'+instrument+'_ana_obs_Ch%02d' % ichan + '_' + date + '_' + \
+                       val + '_' + str(targetlat) + '_' + str(targetlon) + '.jpg'
 
+            vmin=min(obsanl)
+	    vmax=max(obsanl)
+
+            anlobstargetimages[i].append(outfilename)
             if makeplots:
                 print 'generating ' + outfilename 
-                plottarget(m,obs,obsxpt,obsypt,titlestr,vmin,vmax,targetvars[i], \
+                plottarget(m,obsanl,obsxpt,obsypt,titlestr,vmin,vmax,targetvars[i], \
                         targetamps[i],targetlon,targetlat,outfilename)
 
-            if BorA== 'anl' :
-	        titlestr = 'O-A (w/ bc) ' + date + ' ' + instrument + ' Ch ' + str(ichan) + ' ' + val
-                outfilenamebase=date+'/'+instrument+'_ana_OmA_Ch%02d' % ichan + '_' + date + '_' + \
+            titlestr = 'O-A (w/ bc) ' + date + ' ' + instrument + ' Ch ' + str(ichan) + ' ' + val
+            outfilenamebase=date+'/'+instrument+'_ana_OmA_Ch%02d' % ichan + '_' + date + '_' + \
                          val + '_' + str(targetlat) + '_' + str(targetlon) 
-            else:
-	        titlestr = 'O-B (w/ bc) ' + date + ' ' + instrument + ' Ch ' + str(ichan) + ' ' + val
-        	outfilenamebase=date+'/'+instrument+ '_ges_OmB_Ch%02d' % ichan + '_' + date + \
-                        '_' + val + '_' + str(targetlat) + '_' + str(targetlon) 
 
             tableline = '<tr><td><img src="'
 
 	    vmin=-1.0
 	    vmax=1.0
 	    outfilename = outfilenamebase + '_fix.jpg'
+            omatargetimages[i].append(outfilename)
+            if makeplots:
+                print 'generating ' + outfilename 
+                plottarget(m,oma_bc,obsxpt,obsypt,titlestr,vmin,vmax,targetvars[i], \
+                    targetamps[i],targetlon,targetlat,outfilename)
+
+            tableline = tableline + '"></td><td><img src="'
+
+            vmin=min(oma_bc)
+	    vmax=max(oma_bc)
+#	    outfilename = outfilenamebase + '_rel.tiff'
+	    outfilename = outfilenamebase + '_rel.jpg'
             tableline = tableline + outfilename
+            if makeplots:
+                print 'generating ' + outfilename 
+                plottarget(m,oma_bc,obsxpt,obsypt,titlestr,vmin,vmax,targetvars[i], \
+                    targetamps[i],targetlon,targetlat,outfilename)
+
+            tableline = tableline +  '"></td></tr>\n'
+
+#            tablelines[i].append(tableline)
+
+
+        obsges = diagradges.obs[idxges]
+
+        if (obsges.size > 0) :
+
+       	    titlestr = 'Tb ges ' + date + ' ' + instrument + ' Ch ' + str(ichan) + ' ' + val
+            outfilename=date+'/'+instrument+'_ges_obs_Ch%02d' % ichan + '_' + date + '_' + \
+                        val + '_' + str(targetlat) + '_' + str(targetlon) + '.jpg'
+
+            vmin=min(obsges)
+	    vmax=max(obsges)
+
+            gesobstargetimages[i].append(outfilename)
+            if makeplots:
+                print 'generating ' + outfilename 
+                plottarget(m,obsges,obsxpt,obsypt,titlestr,vmin,vmax,targetvars[i], \
+                        targetamps[i],targetlon,targetlat,outfilename)
+
+
+            titlestr = 'O-B (w/ bc) ' + date + ' ' + instrument + ' Ch ' + str(ichan) + ' ' + val
+            outfilenamebase=date+'/'+instrument+ '_ges_OmB_Ch%02d' % ichan + '_' + date + \
+                            '_' + val + '_' + str(targetlat) + '_' + str(targetlon) 
+
+            tableline = '<tr><td><img src="'
+
+	    vmin=-1.0
+	    vmax=1.0
+	    outfilename = outfilenamebase + '_fix.jpg'
+            ombtargetimages[i].append(outfilename)
             if makeplots:
                 print 'generating ' + outfilename 
                 plottarget(m,omb_bc,obsxpt,obsypt,titlestr,vmin,vmax,targetvars[i], \
@@ -367,12 +412,43 @@ for ichan in [6,7]:
 
             tableline = tableline +  '"></td></tr>\n'
 
-            tablelines[i].append(tableline)
+#            tablelines[i].append(tableline)
 
 #        else: tablelines[i].append( -1 )
 
 
+for i,val in enumerate(targetvars):
 
+    targetlat=targetlats[i]
+    targetlon=targetlons[i]
+
+    outfilename=instrument + '_OmA_OmB_' + date +  '_' + \
+                 str(targetlat) + '_' + str(targetlon) + '.html'
+
+
+    for j in  range(len(omatargetimages[i])):
+        print anlobstargetimages[i][j]
+        print gesobstargetimages[i][j]
+        print omatargetimages[i][j]
+        print ombtargetimages[i][j]
+    with open(outfilename, "w") as f:
+        print 'writing ' + outfilename
+        header ='<html><head><title>Sample CGI Script</title></head><body>\n'
+        f.write(header)
+        f.write('<table border="1">\n')
+#        for ichan in channels:
+        for j in  range(len(omatargetimages[i])):
+#        for ichan in [0]:
+            if omatargetimages[i][j] :
+                f.write('<tr><td><img src="')
+                f.write(omatargetimages[i][j])   
+                f.write('" width="500" ></td><td><img src="')
+                f.write(ombtargetimages[i][j])   
+                f.write('" width="500" ></td></tr>\n')
+        f.write('</table></body></html>\n')
+
+
+sys.exit()
 
 for i,val in enumerate(targetvars):
 
