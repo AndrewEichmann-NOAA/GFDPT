@@ -31,7 +31,6 @@ def plotglobal(m,obs,obsxpt,obsypt,titlestr,vmin,vmax,targetvars,targetamps,targ
 
     textypts=[]
     textxpts=[]
-
     for target in range(numgepoints):
         xoffset=100000
 	yoffset=100000
@@ -120,15 +119,13 @@ def plottarget(m,obs,obsxpt,obsypt,titlestr,vmin,vmax,\
 date='2015092200'
 date='2015092600'
 #date='2015101700'
-#date='2015101800'
+date='2015101800'
 #date='2015121000'
 
 
-platform='npp'
-instrument='atms'
 instrument='atms_npp'
-BorA='anl'
-#BorA='ges'
+instrument='amsua_n19'
+instrument='amsua_n18'
 
 #makeplots=True
 makeplots=False
@@ -416,6 +413,7 @@ for ichan in channels:
 
 #        else: tablelines[i].append( -1 )
 
+pagelist=[]
 
 for i,val in enumerate(targetvars):
 
@@ -425,56 +423,41 @@ for i,val in enumerate(targetvars):
     outfilename=instrument + '_OmA_OmB_' + date +  '_' + \
                  str(targetlat) + '_' + str(targetlon) + '.html'
 
-
-    for j in  range(len(omatargetimages[i])):
-        print anlobstargetimages[i][j]
-        print gesobstargetimages[i][j]
-        print omatargetimages[i][j]
-        print ombtargetimages[i][j]
-    with open(outfilename, "w") as f:
-        print 'writing ' + outfilename
-        header ='<html><head><title>Sample CGI Script</title></head><body>\n'
-        f.write(header)
-        f.write('<table border="1">\n')
+    
+#    for j in  range(len(omatargetimages[i])):
+#        print anlobstargetimages[i][j]
+#        print gesobstargetimages[i][j]
+#        print omatargetimages[i][j]
+#        print ombtargetimages[i][j]
+    if len(omatargetimages[i]) > 0:
+        with open(outfilename, "w") as f:
+            print 'writing ' + outfilename
+            pagelist.append(outfilename)
+            header ='<html><head><title>Sample CGI Script</title></head><body>\n'
+            f.write(header)
+            f.write('<table border="1">\n')
 #        for ichan in channels:
-        for j in  range(len(omatargetimages[i])):
-#        for ichan in [0]:
-            if omatargetimages[i][j] :
-                f.write('<tr><td><img src="')
-                f.write(omatargetimages[i][j])   
-                f.write('" width="500" ></td><td><img src="')
-                f.write(ombtargetimages[i][j])   
-                f.write('" width="500" ></td></tr>\n')
-        f.write('</table></body></html>\n')
+            for j in  range(len(omatargetimages[i])):
+#            for ichan in [0]:
+                if omatargetimages[i][j] :
+                    f.write('<tr><td><img src="')
+                    f.write(omatargetimages[i][j])   
+                    f.write('" width="500" ></td><td><img src="')
+                    f.write(ombtargetimages[i][j])   
+                    f.write('" width="500" ></td></tr>\n')
+            f.write('</table></body></html>\n')
+
+pagelistfilename=instrument + '_OmB_and_OmA_' + date + '.html'
+with open(pagelistfilename, "w") as f:
+    print 'writing ' + pagelistfilename
+    header ='<html><head><title>Sample CGI Script</title></head><body>\n'
+    f.write(header)
+    f.write('<ul>\n')
+    for i in range(len(pagelist)):
+        f.write('<li><a href="' + pagelist[i] + '">' +  pagelist[i] + '</a>\n')
+
+    f.write('</u></body></html>\n')
 
 
 sys.exit()
-
-for i,val in enumerate(targetvars):
-
-    targetlat=targetlats[i]
-    targetlon=targetlons[i]
-
- 
-    if BorA== 'anl' :
-        outfilename=instrument+'_ana_OmA_' + date + '_' + \
-                        str(targetlat) + '_' + str(targetlon) + '.html'
-    else:
-      	outfilename=instrument+ '_ges_OmB_' + date + \
-                        '_' + val + '_' + str(targetlat) + '_' + str(targetlon) + '.html'
-
-
-#   gepointpagename='grid_' + val + '_' + str(targetlat) + '_' + str(targetlon) + '.html'
-    with open(outfilename, "w") as f:
-        print 'writing ' + outfilename
-        header ='<html><head><title>Sample CGI Script</title></head><body>\n'
-        f.write(header)
-        f.write('<table border="1">\n')
-#        for ichan in channels:
-        for j in  range(len(tablelines[i])):
-#        for ichan in [0]:
-            if tablelines[i][j] :
-                f.write(tablelines[i][j])   
-        f.write('</table></body></html>\n')
-
 
