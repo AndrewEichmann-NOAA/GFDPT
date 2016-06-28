@@ -6,6 +6,21 @@ import matplotlib.cm as cmx
 import numpy as np
 import sys
 
+date='2015092200'
+date='2015092600'
+date='2015101700'
+date='2015101800'
+date='2015121000'
+
+
+instrument='atms_npp'
+instrument='amsua_n19'
+#instrument='amsua_n18'
+
+#makeplots=True
+makeplots=False
+
+
 
 def plotglobal(m,obs,obsxpt,obsypt,titlestr,vmin,vmax,targetvars,targetamps,targetxpt,targetypt,outfilename):
     m.drawcoastlines()
@@ -114,21 +129,6 @@ def plottarget(m,obs,obsxpt,obsypt,titlestr,vmin,vmax,\
     plt.close('all')
 #    plt.close()
 ################# END PLOTTARGET ###################################
-
-
-date='2015092200'
-date='2015092600'
-#date='2015101700'
-date='2015101800'
-#date='2015121000'
-
-
-instrument='atms_npp'
-instrument='amsua_n19'
-instrument='amsua_n18'
-
-#makeplots=True
-makeplots=False
 
 # get the gribxtremes points
 
@@ -304,11 +304,12 @@ for ichan in channels:
         targetlon=targetlons[i]
 
         
-        if abs(targetlat) > 80: continue # workaround for basemap bug
-
-        m = Basemap(projection='stere',width=4800000,height=3600000,\
-                                            resolution='c',\
-                                            lon_0=targetlon,lat_0=targetlat)
+        if targetlat < -80:
+            m = Basemap(projection='splaea',boundinglat=-70,lon_0=90,resolution='l')
+        else:
+            m = Basemap(projection='stere',width=4800000,height=3600000,\
+                                                resolution='c',\
+                                                lon_0=targetlon,lat_0=targetlat)
 
         obsxpt,obsypt=m(obslons,obslats)
 
@@ -317,7 +318,7 @@ for ichan in channels:
 
         if (obsanl.size > 0) :
 
-       	    titlestr = 'Tb ana ' + date + ' ' + instrument + ' Ch ' + str(ichan) + ' ' + val
+       	    titlestr = 'Tb ana ' + date + ' ' + instrument + ' Ch ' + str(ichan) + ' ' + val + ' ' + str(targetamps[i])
             outfilename=date+'/'+instrument+'_ana_obs_Ch%02d' % ichan + '_' + date + '_' + \
                        val + '_' + str(targetlat) + '_' + str(targetlon) + '.jpg'
 
@@ -330,11 +331,12 @@ for ichan in channels:
                 plottarget(m,obsanl,obsxpt,obsypt,titlestr,vmin,vmax,targetvars[i], \
                         targetamps[i],targetlon,targetlat,outfilename)
 
-            titlestr = 'O-A (w/ bc) ' + date + ' ' + instrument + ' Ch ' + str(ichan) + ' ' + val
+            titlestr = 'O-A (w/ bc) ' + date + ' ' + instrument + ' Ch ' + str(ichan) + ' ' + val + ' ' + str(targetamps[i])
+
             outfilenamebase=date+'/'+instrument+'_ana_OmA_Ch%02d' % ichan + '_' + date + '_' + \
                          val + '_' + str(targetlat) + '_' + str(targetlon) 
 
-            tableline = '<tr><td><img src="'
+#            tableline = '<tr><td><img src="'
 
 	    vmin=-1.0
 	    vmax=1.0
@@ -345,19 +347,19 @@ for ichan in channels:
                 plottarget(m,oma_bc,obsxpt,obsypt,titlestr,vmin,vmax,targetvars[i], \
                     targetamps[i],targetlon,targetlat,outfilename)
 
-            tableline = tableline + '"></td><td><img src="'
+#            tableline = tableline + '"></td><td><img src="'
 
             vmin=min(oma_bc)
 	    vmax=max(oma_bc)
 #	    outfilename = outfilenamebase + '_rel.tiff'
 	    outfilename = outfilenamebase + '_rel.jpg'
-            tableline = tableline + outfilename
+#            tableline = tableline + outfilename
             if makeplots:
                 print 'generating ' + outfilename 
                 plottarget(m,oma_bc,obsxpt,obsypt,titlestr,vmin,vmax,targetvars[i], \
                     targetamps[i],targetlon,targetlat,outfilename)
 
-            tableline = tableline +  '"></td></tr>\n'
+#            tableline = tableline +  '"></td></tr>\n'
 
 #            tablelines[i].append(tableline)
 
@@ -366,7 +368,8 @@ for ichan in channels:
 
         if (obsges.size > 0) :
 
-       	    titlestr = 'Tb ges ' + date + ' ' + instrument + ' Ch ' + str(ichan) + ' ' + val
+       	    titlestr = 'Tb ges ' + date + ' ' + instrument + ' Ch ' + str(ichan) + ' ' + val + ' ' + str(targetamps[i])
+
             outfilename=date+'/'+instrument+'_ges_obs_Ch%02d' % ichan + '_' + date + '_' + \
                         val + '_' + str(targetlat) + '_' + str(targetlon) + '.jpg'
 
@@ -380,7 +383,8 @@ for ichan in channels:
                         targetamps[i],targetlon,targetlat,outfilename)
 
 
-            titlestr = 'O-B (w/ bc) ' + date + ' ' + instrument + ' Ch ' + str(ichan) + ' ' + val
+            titlestr = 'O-B (w/ bc) ' + date + ' ' + instrument + ' Ch ' + str(ichan) + ' ' + val + ' ' + str(targetamps[i])
+
             outfilenamebase=date+'/'+instrument+ '_ges_OmB_Ch%02d' % ichan + '_' + date + \
                             '_' + val + '_' + str(targetlat) + '_' + str(targetlon) 
 
@@ -395,19 +399,19 @@ for ichan in channels:
                 plottarget(m,omb_bc,obsxpt,obsypt,titlestr,vmin,vmax,targetvars[i], \
                     targetamps[i],targetlon,targetlat,outfilename)
 
-            tableline = tableline + '"></td><td><img src="'
+#            tableline = tableline + '"></td><td><img src="'
 
             vmin=min(omb_bc)
 	    vmax=max(omb_bc)
 #	    outfilename = outfilenamebase + '_rel.tiff'
 	    outfilename = outfilenamebase + '_rel.jpg'
-            tableline = tableline + outfilename
+#            tableline = tableline + outfilename
             if makeplots:
                 print 'generating ' + outfilename 
                 plottarget(m,omb_bc,obsxpt,obsypt,titlestr,vmin,vmax,targetvars[i], \
                     targetamps[i],targetlon,targetlat,outfilename)
 
-            tableline = tableline +  '"></td></tr>\n'
+#            tableline = tableline +  '"></td></tr>\n'
 
 #            tablelines[i].append(tableline)
 
@@ -420,7 +424,7 @@ for i,val in enumerate(targetvars):
     targetlat=targetlats[i]
     targetlon=targetlons[i]
 
-    outfilename=instrument + '_OmA_OmB_' + date +  '_' + \
+    outfilename=instrument + '_OmA_OmB_' + date +  '_' + val + '_' + \
                  str(targetlat) + '_' + str(targetlon) + '.html'
 
     
@@ -433,7 +437,7 @@ for i,val in enumerate(targetvars):
         with open(outfilename, "w") as f:
             print 'writing ' + outfilename
             pagelist.append(outfilename)
-            header ='<html><head><title>Sample CGI Script</title></head><body>\n'
+            header ='<html><head><title>title goes here</title></head><body>\n'
             f.write(header)
             f.write('<table border="1">\n')
 #        for ichan in channels:
