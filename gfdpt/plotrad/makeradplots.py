@@ -6,6 +6,7 @@ import matplotlib.cm as cmx
 import numpy as np
 import sys
 
+date='2015092100'
 date='2015092200'
 date='2015092600'
 date='2015101700'
@@ -17,8 +18,8 @@ instrument='atms_npp'
 instrument='amsua_n19'
 #instrument='amsua_n18'
 
-#makeplots=True
-makeplots=False
+makeplots=True
+#makeplots=False
 
 
 
@@ -108,6 +109,7 @@ def plottarget(m,obs,obsxpt,obsypt,titlestr,vmin,vmax,\
     scalarMap.set_array(obs)
     colorVal = scalarMap.to_rgba(obs)
 
+#    foo=m.scatter(obsxpt,obsypt,c=obs,cmap=cm,marker='.',s=300,edgecolors='black',linewidth=0.15) 
 #    foo=m.scatter(obsxpt,obsypt,c=obs,cmap=cm,marker='.',s=300,edgecolors='black',linewidth=0.15) 
 #    foo=m.scatter(obsxpt,obsypt,c=obs,cmap=cm,marker='.',s=300,edgecolors='black',linewidth=0.15) 
     foo=m.scatter(obsxpt,obsypt,c=colorVal,marker='.',s=300,edgecolors='black',linewidth=0.15) 
@@ -200,14 +202,18 @@ for i,val in enumerate(targetlons):
 targetxpt,targetypt=m(targetlons,targetlats)
 
 
-omatargetimages=[[] for x in xrange(numgepoints)]
-ombtargetimages=[[] for x in xrange(numgepoints)]
+omatargetimagesfix=[[] for x in xrange(numgepoints)]
+ombtargetimagesfix=[[] for x in xrange(numgepoints)]
+ambtargetimagesfix=[[] for x in xrange(numgepoints)]
+omatargetimagesrel=[[] for x in xrange(numgepoints)]
+ombtargetimagesrel=[[] for x in xrange(numgepoints)]
+ambtargetimagesrel=[[] for x in xrange(numgepoints)]
 anlobstargetimages=[[] for x in xrange(numgepoints)]
 gesobstargetimages=[[] for x in xrange(numgepoints)]
 
 
 for ichan in channels:
-#for ichan in [6,7]:
+#for ichan in [6,7,8]:
 
     # get indices of all matching channels
     idxallanl = diagradanl.channel == ichan
@@ -287,7 +293,7 @@ for ichan in channels:
     	plotglobal(m,oma_bc,obsxpt,obsypt,titlestr,vmin,vmax,targetvars,targetamps,targetxpt,targetypt,outfilename)
 
 
-    omb_bc = diagradanl.obs[idxanl] - diagradanl.hx[idxanl]
+    omb_bc = diagradges.obs[idxanl] - diagradges.hx[idxanl]
     titlestr = 'O-B (w/ bc) ' + date + ' ' + instrument + ' Ch ' + str(ichan)
     outfilename=date+'/'+instrument+ '_ges_OmB_Ch%02d' % ichan + '_' + date + '.jpg'
     vmin=min(omb_bc)
@@ -312,13 +318,10 @@ for ichan in channels:
                                                 lon_0=targetlon,lat_0=targetlat)
 
         obsxpt,obsypt=m(obslons,obslats)
-
-
-        obsanl=diagradanl.obs[idxanl]
+        obsanl = diagradanl.obs[idxges]
 
         if (obsanl.size > 0) :
 
-       	    titlestr = 'Tb ana ' + date + ' ' + instrument + ' Ch ' + str(ichan) + ' ' + val + ' ' + str(targetamps[i])
             outfilename=date+'/'+instrument+'_ana_obs_Ch%02d' % ichan + '_' + date + '_' + \
                        val + '_' + str(targetlat) + '_' + str(targetlon) + '.jpg'
 
@@ -341,7 +344,7 @@ for ichan in channels:
 	    vmin=-1.0
 	    vmax=1.0
 	    outfilename = outfilenamebase + '_fix.jpg'
-            omatargetimages[i].append(outfilename)
+            omatargetimagesfix[i].append(outfilename)
             if makeplots:
                 print 'generating ' + outfilename 
                 plottarget(m,oma_bc,obsxpt,obsypt,titlestr,vmin,vmax,targetvars[i], \
@@ -354,6 +357,7 @@ for ichan in channels:
 #	    outfilename = outfilenamebase + '_rel.tiff'
 	    outfilename = outfilenamebase + '_rel.jpg'
 #            tableline = tableline + outfilename
+            omatargetimagesrel[i].append(outfilename)
             if makeplots:
                 print 'generating ' + outfilename 
                 plottarget(m,oma_bc,obsxpt,obsypt,titlestr,vmin,vmax,targetvars[i], \
@@ -388,36 +392,57 @@ for ichan in channels:
             outfilenamebase=date+'/'+instrument+ '_ges_OmB_Ch%02d' % ichan + '_' + date + \
                             '_' + val + '_' + str(targetlat) + '_' + str(targetlon) 
 
-            tableline = '<tr><td><img src="'
 
 	    vmin=-1.0
 	    vmax=1.0
 	    outfilename = outfilenamebase + '_fix.jpg'
-            ombtargetimages[i].append(outfilename)
+            ombtargetimagesfix[i].append(outfilename)
             if makeplots:
                 print 'generating ' + outfilename 
                 plottarget(m,omb_bc,obsxpt,obsypt,titlestr,vmin,vmax,targetvars[i], \
                     targetamps[i],targetlon,targetlat,outfilename)
 
-#            tableline = tableline + '"></td><td><img src="'
 
             vmin=min(omb_bc)
 	    vmax=max(omb_bc)
-#	    outfilename = outfilenamebase + '_rel.tiff'
 	    outfilename = outfilenamebase + '_rel.jpg'
-#            tableline = tableline + outfilename
+            ombtargetimagesrel[i].append(outfilename)
             if makeplots:
                 print 'generating ' + outfilename 
                 plottarget(m,omb_bc,obsxpt,obsypt,titlestr,vmin,vmax,targetvars[i], \
                     targetamps[i],targetlon,targetlat,outfilename)
 
-#            tableline = tableline +  '"></td></tr>\n'
+                
+            amb_bc = omb_bc - oma_bc               
+            titlestr = 'A-B (w/ bc) ' + date + ' ' + instrument + ' Ch ' + str(ichan) + ' ' + val + ' ' + str(targetamps[i])
 
-#            tablelines[i].append(tableline)
+            outfilenamebase=date+'/'+instrument+ '_ges_AmB_Ch%02d' % ichan + '_' + date + \
+                            '_' + val + '_' + str(targetlat) + '_' + str(targetlon) 
 
-#        else: tablelines[i].append( -1 )
+	    vmin=-1.0
+	    vmax=1.0
+	    outfilename = outfilenamebase + '_fix.jpg'
+            ambtargetimagesfix[i].append(outfilename)
+            if makeplots:
+                print 'generating ' + outfilename 
+                plottarget(m,amb_bc,obsxpt,obsypt,titlestr,vmin,vmax,targetvars[i], \
+                    targetamps[i],targetlon,targetlat,outfilename)
 
-pagelist=[]
+
+
+            vmin=min(amb_bc)
+	    vmax=max(amb_bc)
+	    outfilename = outfilenamebase + '_rel.jpg'
+            ambtargetimagesrel[i].append(outfilename)
+            if makeplots:
+                print 'generating ' + outfilename 
+                plottarget(m,amb_bc,obsxpt,obsypt,titlestr,vmin,vmax,targetvars[i], \
+                    targetamps[i],targetlon,targetlat,outfilename)
+
+
+
+pagelistfix=[]
+pagelistrel=[]
 
 for i,val in enumerate(targetvars):
 
@@ -425,42 +450,76 @@ for i,val in enumerate(targetvars):
     targetlon=targetlons[i]
 
     outfilename=instrument + '_OmA_OmB_' + date +  '_' + val + '_' + \
-                 str(targetlat) + '_' + str(targetlon) + '.html'
+                 str(targetlat) + '_' + str(targetlon) + '_fix.html'
 
     
-#    for j in  range(len(omatargetimages[i])):
-#        print anlobstargetimages[i][j]
-#        print gesobstargetimages[i][j]
-#        print omatargetimages[i][j]
-#        print ombtargetimages[i][j]
-    if len(omatargetimages[i]) > 0:
+    if len(omatargetimagesfix[i]) > 0:
         with open(outfilename, "w") as f:
             print 'writing ' + outfilename
-            pagelist.append(outfilename)
+            pagelistfix.append(outfilename)
             header ='<html><head><title>title goes here</title></head><body>\n'
             f.write(header)
             f.write('<table border="1">\n')
 #        for ichan in channels:
-            for j in  range(len(omatargetimages[i])):
+            for j in  range(len(omatargetimagesfix[i])):
 #            for ichan in [0]:
-                if omatargetimages[i][j] :
+                if omatargetimagesfix[i][j] :
                     f.write('<tr><td><img src="')
-                    f.write(omatargetimages[i][j])   
+                    f.write(omatargetimagesfix[i][j])   
                     f.write('" width="500" ></td><td><img src="')
-                    f.write(ombtargetimages[i][j])   
+                    f.write(ombtargetimagesfix[i][j])   
+                    f.write('" width="500" ></td><td><img src="')
+                    f.write(ambtargetimagesfix[i][j])   
                     f.write('" width="500" ></td></tr>\n')
             f.write('</table></body></html>\n')
 
-pagelistfilename=instrument + '_OmB_and_OmA_' + date + '.html'
+    outfilename=instrument + '_OmA_OmB_' + date +  '_' + val + '_' + \
+                 str(targetlat) + '_' + str(targetlon) + '_rel.html'
+
+    if len(omatargetimagesrel[i]) > 0:
+        with open(outfilename, "w") as f:
+            print 'writing ' + outfilename
+            pagelistrel.append(outfilename)
+            header ='<html><head><title>title goes here</title></head><body>\n'
+            f.write(header)
+            f.write('<table border="1">\n')
+#        for ichan in channels:
+            for j in  range(len(omatargetimagesrel[i])):
+#            for ichan in [0]:
+                if omatargetimagesrel[i][j] :
+                    f.write('<tr><td><img src="')
+                    f.write(omatargetimagesrel[i][j])   
+                    f.write('" width="500" ></td><td><img src="')
+                    f.write(ombtargetimagesrel[i][j])   
+                    f.write('" width="500" ></td><td><img src="')
+                    f.write(ambtargetimagesrel[i][j])   
+                    f.write('" width="500" ></td></tr>\n')
+            f.write('</table></body></html>\n')
+
+
+pagelistfilename=instrument + '_OmB_and_OmA_' + date + '_fix.html'
 with open(pagelistfilename, "w") as f:
     print 'writing ' + pagelistfilename
     header ='<html><head><title>Sample CGI Script</title></head><body>\n'
     f.write(header)
     f.write('<ul>\n')
-    for i in range(len(pagelist)):
-        f.write('<li><a href="' + pagelist[i] + '">' +  pagelist[i] + '</a>\n')
+    for i in range(len(pagelistfix)):
+        f.write('<li><a href="' + pagelistfix[i] + '">' +  pagelistfix[i] + '</a>\n')
 
     f.write('</u></body></html>\n')
+
+pagelistfilename=instrument + '_OmB_and_OmA_' + date + '_rel.html'
+with open(pagelistfilename, "w") as f:
+    print 'writing ' + pagelistfilename
+    header ='<html><head><title>Sample CGI Script</title></head><body>\n'
+    f.write(header)
+    f.write('<ul>\n')
+    for i in range(len(pagelistrel)):
+        f.write('<li><a href="' + pagelistrel[i] + '">' +  pagelistrel[i] + '</a>\n')
+
+    f.write('</u></body></html>\n')
+
+
 
 
 sys.exit()
