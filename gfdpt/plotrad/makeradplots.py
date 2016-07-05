@@ -1,3 +1,4 @@
+#!/opt/ShellB3/2014Q1/bin/python
 import read_diag
 from mpl_toolkits.basemap import Basemap
 import matplotlib.pyplot as plt
@@ -6,12 +7,13 @@ import matplotlib.cm as cmx
 import numpy as np
 import sys
 
+
 date='2015092100'
 date='2015092200'
 date='2015092600'
 date='2015101700'
 date='2015101800'
-date='2015121000'
+#date='2015121000'
 
 
 instrument='atms_npp'
@@ -21,7 +23,12 @@ instrument='amsua_n19'
 makeplots=True
 #makeplots=False
 
+if len(sys.argv) > 1:
+    date = sys.argv[1]
+    instrument = sys.argv[2]
 
+print date,instrument
+#sys.exit()
 
 def plotglobal(m,obs,obsxpt,obsypt,titlestr,vmin,vmax,targetvars,targetamps,targetxpt,targetypt,outfilename):
     m.drawcoastlines()
