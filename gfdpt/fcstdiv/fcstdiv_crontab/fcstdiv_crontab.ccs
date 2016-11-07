@@ -1,0 +1,17 @@
+## RUN FORECAST-FORECAST CORRELATION JOB FOR FORECAST DIVERGENCE WEBSITE.
+
+## Location of the cron scripts /sss/emc/hwrf/save/Krishna.Kumar/fcstdiv/fcstdiv_crontab
+05 08 * * * sh /sss/emc/hwrf/save/Krishna.Kumar/fcstdiv/scripts/job_corr_gfs_vs_ecmwf_0012z.sh > /ptmpd1/Krishna.Kumar/vsdb_v07_messages/logfile_vsdb0012 2>&1
+
+## RUN EXTREME ANALYSIS DIFFERENCES JOB FOR FORECAST DIVERGENCE WEBSITE.
+
+30 06 * * * sh /sss/emc/hwrf/save/Krishna.Kumar/fcstdiv/scripts/run_job_gfs_ecmwf_gribextremes_00.sh > /ptmpd1/Krishna.Kumar/vsdb_v07_messages/logfile_gribextremes00 2>&1
+
+## SCRIPTS TO COPY FORECAST DIVERGENCE FILES TO INTRA SERVERS
+
+##35 08 * * * sh /u/wx12ss/kam/scripts/cp_ext_anl.sh > /ptmp/wx12ss/fcstdiv/logfiles/cp_ext_anl.out 2>&1
+##40 08 * * * sh /u/wx12ss/kam/scripts/cp_fcstcor.sh > /ptmp/wx12ss/fcstdiv/logfiles/cp_fcstcor.out 2>&1
+##50 08 * * * sh /u/wx12ss/kam/scripts/fcstdiv_correlations_web_update.sh > /ptmp/wx12ss/fcstdiv/logfiles/cp_corr_update.out 2>&1
+##41 08 * * * sh /u/wx12ss/kam/scripts/fcstdiv_ext_anl_web_update.sh > /ptmp/wx12ss/fcstdiv/logfiles/cp_extanl_update.out 2>&1
+##30 10 * * * sh /u/wx12ss/kam/scripts/archive_udpate_ccs.sh > /ptmp/wx12ss/fcstdiv/logfiles/archive_script 2>&1
+##00 11 * * * sh /u/wx12ss/kam/scripts/scp_grib_vsdb.sh > /ptmp/wx12ss/fcstdiv/logfiles/scp_script 2>&1

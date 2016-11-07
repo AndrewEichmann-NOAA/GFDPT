@@ -1,0 +1,45 @@
+#########################################################################
+#  This script installs the SFFDSF program into the GEMPAK environment. #
+#                                                                       #
+#  Environmental variable OS must be defined.                           #
+#                                                                       #
+#  Log:                                                                 #
+#  K. Brill      2/97                                                   #
+#  V. Krishna Kumar 2/2001
+#########################################################################
+
+# Build sffdsf
+
+CC="cc"
+CFLAGS="-D$OS -I$GEMINC -I$LDMINC"
+AC="cc"
+ANSI_CFLAGS="-D$OS -I$GEMINC -I$LDMINC"
+
+FC="xlf"
+FFLAGS="-I$GEMINC -I$GEMINC/$OS -q32"
+LDFLAGS="-s -q32"
+XLIBS="-lXm -lXt -lX11"
+LDM_FLAGS="-DSTDC_HEADERS=1 -D_ALL_SOURCE=1"
+
+export CC
+export CFLAGS
+export AC
+export ANSI_CFLAGS
+
+export FC
+export FFLAGS
+export LDFLAGS
+export XLIBS
+export LDM_FLAGS
+export RM=/bin/rm
+
+$GEMPAK/install/setup_links
+$FC $FFLAGS $LDFLAGS  -o sffdsf sffdsf.f \
+	sfdchk.f sfdinp.f sfdopn.f sfdrdd.f sfdsst.f \
+     $GEMOLB/gemlib.a $GEMOLB/appl.a $GEMOLB/syslib.a \
+        $GEMOLB/cgemlib.a -bloadmap:sffdsf.cerrors -bnoquiet
+strip sffdsf 
+$GEMPAK/install/remove_links .
+/bin/rm setup_links
+/bin/rm remove_links
+/bin/rm *.o *.a

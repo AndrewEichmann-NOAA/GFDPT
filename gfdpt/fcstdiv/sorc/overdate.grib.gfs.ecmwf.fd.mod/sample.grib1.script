@@ -1,0 +1,22 @@
+# THIS SCRIPT READS A FORECAST FILE (UNIT 11), MODIFIES REFERENCE TIME YEAR MONTH
+# DATE AND HOUR IN SECTION 1 AND IN PRODUCT TEMPLATE 4.x TO REPLACE INTERNAL 
+# REFERENCE TIME FROM A DATE IN FILE UNIT 51.
+# STANDARD INPUT IS A YYYYMMDDHH (10-DIGIT INTEGER), FOR EXAMPLE 2010090112
+
+set -x
+
+export XLFRTEOPTS="unit_vars=yes"     # Allow overriding default names.
+
+ export XLFUNIT_11=pgbf120.2010102600.o
+ export XLFUNIT_31=" "
+ export XLFUNIT_51=pgbf120.2010102600.o.verf
+
+
+datefield=`wgrib -verf -4yr -d 1 pgbf120.2010102600.o | grep -i 'd=' | cut -c7-16` 
+model_id=81
+fhour=00
+cat <<EOH > cardec
+${datefield} ${model_id} ${fhour}
+EOH
+
+overdate.grib 1> overdate.grib.out < cardec 2>overdate.grib.err

@@ -1,0 +1,607 @@
++ export vsdbhome=/ptmpd2/Krishna.Kumar/fcstdiv
++ vsdbhome=/ptmpd2/Krishna.Kumar/fcstdiv
++ export exechome=/sss/emc/hwrf/save/Krishna.Kumar/fcstdiv
++ exechome=/sss/emc/hwrf/save/Krishna.Kumar/fcstdiv
++ export exp1=gfs
++ exp1=gfs
++ export exp2=ecm
++ exp2=ecm
++ export pgbgfsdir=/global/noscrub/emc.glopara/global/gfs
++ pgbgfsdir=/global/noscrub/emc.glopara/global/gfs
++ export pgbecmdir=/global/noscrub/emc.glopara/global/ecm
++ pgbecmdir=/global/noscrub/emc.glopara/global/ecm
++ export execdir=/sss/emc/hwrf/save/Krishna.Kumar/fcstdiv/exec
++ execdir=/sss/emc/hwrf/save/Krishna.Kumar/fcstdiv/exec
++ export cyc=00
++ cyc=00
++ export cycle=t00z
++ cycle=t00z
++ '[' 00 -eq 00 ']'
+++ date +%Y%m%d
++ export spdy=20161025
++ spdy=20161025
++ export fpdy=20161025
++ fpdy=20161025
++ export spdy=20151201
++ spdy=20151201
++ export fpdy=20151205
++ fpdy=20151205
++ export vlength=120
++ vlength=120
++ export fcst_int=24
++ fcst_int=24
++ export asub=a
++ asub=a
++ export fsub=f
++ fsub=f
++ export DATA1=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs
++ DATA1=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs
++ export DATA2=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm
++ DATA2=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm
++ ls -d /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm
+ls: cannot access /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs: No such file or directory
+ls: cannot access /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm: No such file or directory
++ err0=2
++ test 2 -eq 0
++ echo '/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm directories do not exist'
++ echo 'Safe to create these'
++ mkdir -p /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm
++ sday=0
+++ /nwprod/util/ush/finddate.sh 20151201 s-1
++ nday=20151130
++ '[' 20151130 -lt 20151205 ']'
+++ expr 0 + 1
++ sday=1
+++ /nwprod/util/ush/finddate.sh 20151130 d+1
++ nday=20151201
++ PDY=20151201
++ iday=0
+++ expr 120 / 24
++ fday=5
++ fhr=00
++ '[' 0 -lt 5 ']'
+++ expr 0 + 1
++ iday=1
+++ expr 24 '*' 1
++ fhr=24
++ echo 'iday = ' 1 'fhr = ' 24
++ ln -s /global/noscrub/emc.glopara/global/gfs/pgbf24.gfs.2015120100 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/.
++ ln -s /global/noscrub/emc.glopara/global/ecm/pgbf24.ecm.2015120100 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf24.ecm.2015120100.o
+++ wgrib -verf -4yr -d 1 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf24.ecm.2015120100.o
+++ grep -i d=
+++ cut -c7-16
++ vdate=2015120200
++ fhour=00
++ p_id=81
++ cat
++ export FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf24.ecm.2015120100
++ FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf24.ecm.2015120100
++ export FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120200
++ FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120200
++ /sss/emc/hwrf/save/Krishna.Kumar/fcstdiv/exec/overdate.grib.gfs.ecmwf 1
++ '[' 1 -lt 5 ']'
+++ expr 1 + 1
++ iday=2
+++ expr 24 '*' 2
++ fhr=48
++ echo 'iday = ' 2 'fhr = ' 48
++ ln -s /global/noscrub/emc.glopara/global/gfs/pgbf48.gfs.2015120100 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/.
++ ln -s /global/noscrub/emc.glopara/global/ecm/pgbf48.ecm.2015120100 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf48.ecm.2015120100.o
+++ wgrib -verf -4yr -d 1 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf48.ecm.2015120100.o
+++ grep -i d=
+++ cut -c7-16
++ vdate=2015120300
++ fhour=00
++ p_id=81
++ cat
++ export FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf48.ecm.2015120100
++ FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf48.ecm.2015120100
++ export FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120300
++ FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120300
++ /sss/emc/hwrf/save/Krishna.Kumar/fcstdiv/exec/overdate.grib.gfs.ecmwf 1
++ '[' 2 -lt 5 ']'
+++ expr 2 + 1
++ iday=3
+++ expr 24 '*' 3
++ fhr=72
++ echo 'iday = ' 3 'fhr = ' 72
++ ln -s /global/noscrub/emc.glopara/global/gfs/pgbf72.gfs.2015120100 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/.
++ ln -s /global/noscrub/emc.glopara/global/ecm/pgbf72.ecm.2015120100 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf72.ecm.2015120100.o
+++ wgrib -verf -4yr -d 1 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf72.ecm.2015120100.o
+++ grep -i d=
+++ cut -c7-16
++ vdate=2015120400
++ fhour=00
++ p_id=81
++ cat
++ export FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf72.ecm.2015120100
++ FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf72.ecm.2015120100
++ export FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120400
++ FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120400
++ /sss/emc/hwrf/save/Krishna.Kumar/fcstdiv/exec/overdate.grib.gfs.ecmwf 1
++ '[' 3 -lt 5 ']'
+++ expr 3 + 1
++ iday=4
+++ expr 24 '*' 4
++ fhr=96
++ echo 'iday = ' 4 'fhr = ' 96
++ ln -s /global/noscrub/emc.glopara/global/gfs/pgbf96.gfs.2015120100 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/.
++ ln -s /global/noscrub/emc.glopara/global/ecm/pgbf96.ecm.2015120100 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf96.ecm.2015120100.o
+++ wgrib -verf -4yr -d 1 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf96.ecm.2015120100.o
+++ grep -i d=
+++ cut -c7-16
++ vdate=2015120500
++ fhour=00
++ p_id=81
++ cat
++ export FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf96.ecm.2015120100
++ FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf96.ecm.2015120100
++ export FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120500
++ FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120500
++ /sss/emc/hwrf/save/Krishna.Kumar/fcstdiv/exec/overdate.grib.gfs.ecmwf 1
++ '[' 4 -lt 5 ']'
+++ expr 4 + 1
++ iday=5
+++ expr 24 '*' 5
++ fhr=120
++ echo 'iday = ' 5 'fhr = ' 120
++ ln -s /global/noscrub/emc.glopara/global/gfs/pgbf120.gfs.2015120100 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/.
++ ln -s /global/noscrub/emc.glopara/global/ecm/pgbf120.ecm.2015120100 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf120.ecm.2015120100.o
+++ wgrib -verf -4yr -d 1 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf120.ecm.2015120100.o
+++ grep -i d=
+++ cut -c7-16
++ vdate=2015120600
++ fhour=00
++ p_id=81
++ cat
++ export FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf120.ecm.2015120100
++ FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf120.ecm.2015120100
++ export FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120600
++ FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120600
++ /sss/emc/hwrf/save/Krishna.Kumar/fcstdiv/exec/overdate.grib.gfs.ecmwf 1
++ '[' 5 -lt 5 ']'
++ '[' 20151201 -lt 20151205 ']'
+++ expr 1 + 1
++ sday=2
+++ /nwprod/util/ush/finddate.sh 20151201 d+1
++ nday=20151202
++ PDY=20151202
++ iday=0
+++ expr 120 / 24
++ fday=5
++ fhr=00
++ '[' 0 -lt 5 ']'
+++ expr 0 + 1
++ iday=1
+++ expr 24 '*' 1
++ fhr=24
++ echo 'iday = ' 1 'fhr = ' 24
++ ln -s /global/noscrub/emc.glopara/global/gfs/pgbf24.gfs.2015120200 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/.
++ ln -s /global/noscrub/emc.glopara/global/ecm/pgbf24.ecm.2015120200 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf24.ecm.2015120200.o
+++ wgrib -verf -4yr -d 1 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf24.ecm.2015120200.o
+++ grep -i d=
+++ cut -c7-16
++ vdate=2015120300
++ fhour=00
++ p_id=81
++ cat
++ export FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf24.ecm.2015120200
++ FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf24.ecm.2015120200
++ export FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120300
++ FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120300
++ /sss/emc/hwrf/save/Krishna.Kumar/fcstdiv/exec/overdate.grib.gfs.ecmwf 1
++ '[' 1 -lt 5 ']'
+++ expr 1 + 1
++ iday=2
+++ expr 24 '*' 2
++ fhr=48
++ echo 'iday = ' 2 'fhr = ' 48
++ ln -s /global/noscrub/emc.glopara/global/gfs/pgbf48.gfs.2015120200 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/.
++ ln -s /global/noscrub/emc.glopara/global/ecm/pgbf48.ecm.2015120200 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf48.ecm.2015120200.o
+++ wgrib -verf -4yr -d 1 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf48.ecm.2015120200.o
+++ grep -i d=
+++ cut -c7-16
++ vdate=2015120400
++ fhour=00
++ p_id=81
++ cat
++ export FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf48.ecm.2015120200
++ FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf48.ecm.2015120200
++ export FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120400
++ FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120400
++ /sss/emc/hwrf/save/Krishna.Kumar/fcstdiv/exec/overdate.grib.gfs.ecmwf 1
++ '[' 2 -lt 5 ']'
+++ expr 2 + 1
++ iday=3
+++ expr 24 '*' 3
++ fhr=72
++ echo 'iday = ' 3 'fhr = ' 72
++ ln -s /global/noscrub/emc.glopara/global/gfs/pgbf72.gfs.2015120200 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/.
++ ln -s /global/noscrub/emc.glopara/global/ecm/pgbf72.ecm.2015120200 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf72.ecm.2015120200.o
+++ wgrib -verf -4yr -d 1 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf72.ecm.2015120200.o
+++ grep -i d=
+++ cut -c7-16
++ vdate=2015120500
++ fhour=00
++ p_id=81
++ cat
++ export FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf72.ecm.2015120200
++ FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf72.ecm.2015120200
++ export FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120500
++ FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120500
++ /sss/emc/hwrf/save/Krishna.Kumar/fcstdiv/exec/overdate.grib.gfs.ecmwf 1
++ '[' 3 -lt 5 ']'
+++ expr 3 + 1
++ iday=4
+++ expr 24 '*' 4
++ fhr=96
++ echo 'iday = ' 4 'fhr = ' 96
++ ln -s /global/noscrub/emc.glopara/global/gfs/pgbf96.gfs.2015120200 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/.
++ ln -s /global/noscrub/emc.glopara/global/ecm/pgbf96.ecm.2015120200 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf96.ecm.2015120200.o
+++ wgrib -verf -4yr -d 1 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf96.ecm.2015120200.o
+++ grep -i d=
+++ cut -c7-16
++ vdate=2015120600
++ fhour=00
++ p_id=81
++ cat
++ export FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf96.ecm.2015120200
++ FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf96.ecm.2015120200
++ export FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120600
++ FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120600
++ /sss/emc/hwrf/save/Krishna.Kumar/fcstdiv/exec/overdate.grib.gfs.ecmwf 1
++ '[' 4 -lt 5 ']'
+++ expr 4 + 1
++ iday=5
+++ expr 24 '*' 5
++ fhr=120
++ echo 'iday = ' 5 'fhr = ' 120
++ ln -s /global/noscrub/emc.glopara/global/gfs/pgbf120.gfs.2015120200 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/.
++ ln -s /global/noscrub/emc.glopara/global/ecm/pgbf120.ecm.2015120200 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf120.ecm.2015120200.o
+++ wgrib -verf -4yr -d 1 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf120.ecm.2015120200.o
+++ grep -i d=
+++ cut -c7-16
++ vdate=2015120700
++ fhour=00
++ p_id=81
++ cat
++ export FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf120.ecm.2015120200
++ FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf120.ecm.2015120200
++ export FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120700
++ FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120700
++ /sss/emc/hwrf/save/Krishna.Kumar/fcstdiv/exec/overdate.grib.gfs.ecmwf 1
++ '[' 5 -lt 5 ']'
++ '[' 20151202 -lt 20151205 ']'
+++ expr 2 + 1
++ sday=3
+++ /nwprod/util/ush/finddate.sh 20151202 d+1
++ nday=20151203
++ PDY=20151203
++ iday=0
+++ expr 120 / 24
++ fday=5
++ fhr=00
++ '[' 0 -lt 5 ']'
+++ expr 0 + 1
++ iday=1
+++ expr 24 '*' 1
++ fhr=24
++ echo 'iday = ' 1 'fhr = ' 24
++ ln -s /global/noscrub/emc.glopara/global/gfs/pgbf24.gfs.2015120300 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/.
++ ln -s /global/noscrub/emc.glopara/global/ecm/pgbf24.ecm.2015120300 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf24.ecm.2015120300.o
+++ wgrib -verf -4yr -d 1 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf24.ecm.2015120300.o
+++ grep -i d=
+++ cut -c7-16
++ vdate=2015120400
++ fhour=00
++ p_id=81
++ cat
++ export FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf24.ecm.2015120300
++ FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf24.ecm.2015120300
++ export FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120400
++ FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120400
++ /sss/emc/hwrf/save/Krishna.Kumar/fcstdiv/exec/overdate.grib.gfs.ecmwf 1
++ '[' 1 -lt 5 ']'
+++ expr 1 + 1
++ iday=2
+++ expr 24 '*' 2
++ fhr=48
++ echo 'iday = ' 2 'fhr = ' 48
++ ln -s /global/noscrub/emc.glopara/global/gfs/pgbf48.gfs.2015120300 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/.
++ ln -s /global/noscrub/emc.glopara/global/ecm/pgbf48.ecm.2015120300 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf48.ecm.2015120300.o
+++ wgrib -verf -4yr -d 1 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf48.ecm.2015120300.o
+++ grep -i d=
+++ cut -c7-16
++ vdate=2015120500
++ fhour=00
++ p_id=81
++ cat
++ export FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf48.ecm.2015120300
++ FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf48.ecm.2015120300
++ export FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120500
++ FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120500
++ /sss/emc/hwrf/save/Krishna.Kumar/fcstdiv/exec/overdate.grib.gfs.ecmwf 1
++ '[' 2 -lt 5 ']'
+++ expr 2 + 1
++ iday=3
+++ expr 24 '*' 3
++ fhr=72
++ echo 'iday = ' 3 'fhr = ' 72
++ ln -s /global/noscrub/emc.glopara/global/gfs/pgbf72.gfs.2015120300 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/.
++ ln -s /global/noscrub/emc.glopara/global/ecm/pgbf72.ecm.2015120300 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf72.ecm.2015120300.o
+++ wgrib -verf -4yr -d 1 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf72.ecm.2015120300.o
+++ grep -i d=
+++ cut -c7-16
++ vdate=2015120600
++ fhour=00
++ p_id=81
++ cat
++ export FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf72.ecm.2015120300
++ FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf72.ecm.2015120300
++ export FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120600
++ FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120600
++ /sss/emc/hwrf/save/Krishna.Kumar/fcstdiv/exec/overdate.grib.gfs.ecmwf 1
++ '[' 3 -lt 5 ']'
+++ expr 3 + 1
++ iday=4
+++ expr 24 '*' 4
++ fhr=96
++ echo 'iday = ' 4 'fhr = ' 96
++ ln -s /global/noscrub/emc.glopara/global/gfs/pgbf96.gfs.2015120300 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/.
++ ln -s /global/noscrub/emc.glopara/global/ecm/pgbf96.ecm.2015120300 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf96.ecm.2015120300.o
+++ wgrib -verf -4yr -d 1 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf96.ecm.2015120300.o
+++ grep -i d=
+++ cut -c7-16
++ vdate=2015120700
++ fhour=00
++ p_id=81
++ cat
++ export FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf96.ecm.2015120300
++ FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf96.ecm.2015120300
++ export FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120700
++ FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120700
++ /sss/emc/hwrf/save/Krishna.Kumar/fcstdiv/exec/overdate.grib.gfs.ecmwf 1
++ '[' 4 -lt 5 ']'
+++ expr 4 + 1
++ iday=5
+++ expr 24 '*' 5
++ fhr=120
++ echo 'iday = ' 5 'fhr = ' 120
++ ln -s /global/noscrub/emc.glopara/global/gfs/pgbf120.gfs.2015120300 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/.
++ ln -s /global/noscrub/emc.glopara/global/ecm/pgbf120.ecm.2015120300 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf120.ecm.2015120300.o
+++ wgrib -verf -4yr -d 1 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf120.ecm.2015120300.o
+++ grep -i d=
+++ cut -c7-16
++ vdate=2015120800
++ fhour=00
++ p_id=81
++ cat
++ export FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf120.ecm.2015120300
++ FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf120.ecm.2015120300
++ export FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120800
++ FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120800
++ /sss/emc/hwrf/save/Krishna.Kumar/fcstdiv/exec/overdate.grib.gfs.ecmwf 1
++ '[' 5 -lt 5 ']'
++ '[' 20151203 -lt 20151205 ']'
+++ expr 3 + 1
++ sday=4
+++ /nwprod/util/ush/finddate.sh 20151203 d+1
++ nday=20151204
++ PDY=20151204
++ iday=0
+++ expr 120 / 24
++ fday=5
++ fhr=00
++ '[' 0 -lt 5 ']'
+++ expr 0 + 1
++ iday=1
+++ expr 24 '*' 1
++ fhr=24
++ echo 'iday = ' 1 'fhr = ' 24
++ ln -s /global/noscrub/emc.glopara/global/gfs/pgbf24.gfs.2015120400 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/.
++ ln -s /global/noscrub/emc.glopara/global/ecm/pgbf24.ecm.2015120400 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf24.ecm.2015120400.o
+++ wgrib -verf -4yr -d 1 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf24.ecm.2015120400.o
+++ grep -i d=
+++ cut -c7-16
++ vdate=2015120500
++ fhour=00
++ p_id=81
++ cat
++ export FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf24.ecm.2015120400
++ FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf24.ecm.2015120400
++ export FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120500
++ FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120500
++ /sss/emc/hwrf/save/Krishna.Kumar/fcstdiv/exec/overdate.grib.gfs.ecmwf 1
++ '[' 1 -lt 5 ']'
+++ expr 1 + 1
++ iday=2
+++ expr 24 '*' 2
++ fhr=48
++ echo 'iday = ' 2 'fhr = ' 48
++ ln -s /global/noscrub/emc.glopara/global/gfs/pgbf48.gfs.2015120400 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/.
++ ln -s /global/noscrub/emc.glopara/global/ecm/pgbf48.ecm.2015120400 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf48.ecm.2015120400.o
+++ wgrib -verf -4yr -d 1 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf48.ecm.2015120400.o
+++ grep -i d=
+++ cut -c7-16
++ vdate=2015120600
++ fhour=00
++ p_id=81
++ cat
++ export FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf48.ecm.2015120400
++ FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf48.ecm.2015120400
++ export FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120600
++ FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120600
++ /sss/emc/hwrf/save/Krishna.Kumar/fcstdiv/exec/overdate.grib.gfs.ecmwf 1
++ '[' 2 -lt 5 ']'
+++ expr 2 + 1
++ iday=3
+++ expr 24 '*' 3
++ fhr=72
++ echo 'iday = ' 3 'fhr = ' 72
++ ln -s /global/noscrub/emc.glopara/global/gfs/pgbf72.gfs.2015120400 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/.
++ ln -s /global/noscrub/emc.glopara/global/ecm/pgbf72.ecm.2015120400 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf72.ecm.2015120400.o
+++ wgrib -verf -4yr -d 1 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf72.ecm.2015120400.o
+++ grep -i d=
+++ cut -c7-16
++ vdate=2015120700
++ fhour=00
++ p_id=81
++ cat
++ export FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf72.ecm.2015120400
++ FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf72.ecm.2015120400
++ export FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120700
++ FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120700
++ /sss/emc/hwrf/save/Krishna.Kumar/fcstdiv/exec/overdate.grib.gfs.ecmwf 1
++ '[' 3 -lt 5 ']'
+++ expr 3 + 1
++ iday=4
+++ expr 24 '*' 4
++ fhr=96
++ echo 'iday = ' 4 'fhr = ' 96
++ ln -s /global/noscrub/emc.glopara/global/gfs/pgbf96.gfs.2015120400 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/.
++ ln -s /global/noscrub/emc.glopara/global/ecm/pgbf96.ecm.2015120400 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf96.ecm.2015120400.o
+++ wgrib -verf -4yr -d 1 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf96.ecm.2015120400.o
+++ grep -i d=
+++ cut -c7-16
++ vdate=2015120800
++ fhour=00
++ p_id=81
++ cat
++ export FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf96.ecm.2015120400
++ FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf96.ecm.2015120400
++ export FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120800
++ FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120800
++ /sss/emc/hwrf/save/Krishna.Kumar/fcstdiv/exec/overdate.grib.gfs.ecmwf 1
++ '[' 4 -lt 5 ']'
+++ expr 4 + 1
++ iday=5
+++ expr 24 '*' 5
++ fhr=120
++ echo 'iday = ' 5 'fhr = ' 120
++ ln -s /global/noscrub/emc.glopara/global/gfs/pgbf120.gfs.2015120400 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/.
++ ln -s /global/noscrub/emc.glopara/global/ecm/pgbf120.ecm.2015120400 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf120.ecm.2015120400.o
+++ wgrib -verf -4yr -d 1 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf120.ecm.2015120400.o
+++ grep -i d=
+++ cut -c7-16
++ vdate=2015120900
++ fhour=00
++ p_id=81
++ cat
++ export FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf120.ecm.2015120400
++ FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf120.ecm.2015120400
++ export FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120900
++ FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120900
++ /sss/emc/hwrf/save/Krishna.Kumar/fcstdiv/exec/overdate.grib.gfs.ecmwf 1
++ '[' 5 -lt 5 ']'
++ '[' 20151204 -lt 20151205 ']'
+++ expr 4 + 1
++ sday=5
+++ /nwprod/util/ush/finddate.sh 20151204 d+1
++ nday=20151205
++ PDY=20151205
++ iday=0
+++ expr 120 / 24
++ fday=5
++ fhr=00
++ '[' 0 -lt 5 ']'
+++ expr 0 + 1
++ iday=1
+++ expr 24 '*' 1
++ fhr=24
++ echo 'iday = ' 1 'fhr = ' 24
++ ln -s /global/noscrub/emc.glopara/global/gfs/pgbf24.gfs.2015120500 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/.
++ ln -s /global/noscrub/emc.glopara/global/ecm/pgbf24.ecm.2015120500 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf24.ecm.2015120500.o
+++ wgrib -verf -4yr -d 1 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf24.ecm.2015120500.o
+++ grep -i d=
+++ cut -c7-16
++ vdate=2015120600
++ fhour=00
++ p_id=81
++ cat
++ export FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf24.ecm.2015120500
++ FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf24.ecm.2015120500
++ export FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120600
++ FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120600
++ /sss/emc/hwrf/save/Krishna.Kumar/fcstdiv/exec/overdate.grib.gfs.ecmwf 1
++ '[' 1 -lt 5 ']'
+++ expr 1 + 1
++ iday=2
+++ expr 24 '*' 2
++ fhr=48
++ echo 'iday = ' 2 'fhr = ' 48
++ ln -s /global/noscrub/emc.glopara/global/gfs/pgbf48.gfs.2015120500 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/.
++ ln -s /global/noscrub/emc.glopara/global/ecm/pgbf48.ecm.2015120500 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf48.ecm.2015120500.o
+++ wgrib -verf -4yr -d 1 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf48.ecm.2015120500.o
+++ grep -i d=
+++ cut -c7-16
++ vdate=2015120700
++ fhour=00
++ p_id=81
++ cat
++ export FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf48.ecm.2015120500
++ FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf48.ecm.2015120500
++ export FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120700
++ FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120700
++ /sss/emc/hwrf/save/Krishna.Kumar/fcstdiv/exec/overdate.grib.gfs.ecmwf 1
++ '[' 2 -lt 5 ']'
+++ expr 2 + 1
++ iday=3
+++ expr 24 '*' 3
++ fhr=72
++ echo 'iday = ' 3 'fhr = ' 72
++ ln -s /global/noscrub/emc.glopara/global/gfs/pgbf72.gfs.2015120500 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/.
++ ln -s /global/noscrub/emc.glopara/global/ecm/pgbf72.ecm.2015120500 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf72.ecm.2015120500.o
+++ wgrib -verf -4yr -d 1 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf72.ecm.2015120500.o
+++ grep -i d=
+++ cut -c7-16
++ vdate=2015120800
++ fhour=00
++ p_id=81
++ cat
++ export FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf72.ecm.2015120500
++ FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf72.ecm.2015120500
++ export FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120800
++ FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120800
++ /sss/emc/hwrf/save/Krishna.Kumar/fcstdiv/exec/overdate.grib.gfs.ecmwf 1
++ '[' 3 -lt 5 ']'
+++ expr 3 + 1
++ iday=4
+++ expr 24 '*' 4
++ fhr=96
++ echo 'iday = ' 4 'fhr = ' 96
++ ln -s /global/noscrub/emc.glopara/global/gfs/pgbf96.gfs.2015120500 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/.
++ ln -s /global/noscrub/emc.glopara/global/ecm/pgbf96.ecm.2015120500 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf96.ecm.2015120500.o
+++ wgrib -verf -4yr -d 1 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf96.ecm.2015120500.o
+++ grep -i d=
+++ cut -c7-16
++ vdate=2015120900
++ fhour=00
++ p_id=81
++ cat
++ export FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf96.ecm.2015120500
++ FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf96.ecm.2015120500
++ export FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120900
++ FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015120900
++ /sss/emc/hwrf/save/Krishna.Kumar/fcstdiv/exec/overdate.grib.gfs.ecmwf 1
++ '[' 4 -lt 5 ']'
+++ expr 4 + 1
++ iday=5
+++ expr 24 '*' 5
++ fhr=120
++ echo 'iday = ' 5 'fhr = ' 120
++ ln -s /global/noscrub/emc.glopara/global/gfs/pgbf120.gfs.2015120500 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/.
++ ln -s /global/noscrub/emc.glopara/global/ecm/pgbf120.ecm.2015120500 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf120.ecm.2015120500.o
+++ wgrib -verf -4yr -d 1 /ptmpd2/Krishna.Kumar/fcstdiv/grib_files/ecm/pgbf120.ecm.2015120500.o
+++ grep -i d=
+++ cut -c7-16
++ vdate=2015121000
++ fhour=00
++ p_id=81
++ cat
++ export FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf120.ecm.2015120500
++ FORT11=/global/noscrub/emc.glopara/global/ecm/pgbf120.ecm.2015120500
++ export FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015121000
++ FORT51=/ptmpd2/Krishna.Kumar/fcstdiv/grib_files/gfs/pgbf00.gfs.2015121000
++ /sss/emc/hwrf/save/Krishna.Kumar/fcstdiv/exec/overdate.grib.gfs.ecmwf 1
++ '[' 5 -lt 5 ']'
++ '[' 20151205 -lt 20151205 ']'

@@ -1,0 +1,260 @@
+#!/bin/ksh
+#  ...  plot height and wind              
+#  ... 1) gfs_guess; 2) gfs_anal; 3) ecm_anal; 4) ecm_anal -  gfs_anal; 5) gfs_anal - gfs_guess
+#  ... the command line will run:
+#  ... wind_dif3b.setup <time1> <level mb> [n/b] [text]
+#  ...                           vectors/barbs
+#     this script plots tmpprs and wind vectors
+#wind.ecmwfgfs.setup 2010121112 300 n 06 grdprs -60 245
+set -x
+date
+DATE=`date '+%y%m%d'`
+echo $DATE 
+DOY=`echo $DATE|cut -c1-6`
+echo $DOY  
+# CYCLE=`echo $DATE|cut -c7-8`
+# echo $CYCLE .......  CYCLE cut from DATE
+#
+# b for batch so no graphics goes to screen, n for normal
+# Usage:     wind_dif2.setup time level b|n ICdate
+# defaults:  wind_dif2.setup 2008102112 1000 n 00
+#
+title1=gfs_guess
+title2=gfs_anl
+title3=ecmwf_anl
+exptstd=$gribout
+#
+   export pdy=`echo $1 | cut -c1-8`
+   export cyc=`echo $1 | cut -c9-10`
+   export cpdy=$pdy$cyc
+   export pcpdy=`/nwprod/util/exec/ndate -6 $cpdy`
+   export ppdy=`echo $pcpdy | cut -c1-8`
+   export pcyc=`echo $pcpdy | cut -c9-10`
+   export mmdd=`echo $cpdy | cut -c5-8`
+   export fcyc=${cyc}00
+   export gdas_guess=/com/gfs/prod/gdas.$ppdy
+   export gfs_anal=/com/gfs/prod/gfs.$pdy
+   export ecm_anal=$grib_ecma
+#
+   cp $gdas_guess/gdas1.t${pcyc}z.pgrbf06 $exptstd/gfs_guess_$pcpdy
+   cp $gfs_anal/gfs.t${cyc}z.pgrbanl $exptstd/gfs_anal_$cpdy
+   cp $ecm_anal/${ecmhead}$mmdd$fcyc$mmdd${cyc}001 $exptstd/ecm_anal_$cpdy
+
+#
+ICdate=${4:-"00"}
+export ft=${ICdate}
+#incdate=24
+#
+export time1=${1:-"2007102112"}
+echo " time1=$time1 "
+export CYC=${time1#????????}
+export CDY=${time1%??}
+export CMO=${time1%????}
+echo " ***** time1 CYC=$CYC "
+echo " ***** time1 CDY=$CDY "
+echo " ***** time1 CMO=$CMO "
+export lev_select=${2:-"1000"}
+echo " lev_select=$lev_select "
+#
+distn=10
+diste=15
+##distn=20
+##diste=30
+export lat1=`expr $6 \- $distn`
+export lat2=`expr $6 \+ $distn`
+#export lon1=${7:-"120"}
+export lon1=`expr $7 \- $diste`
+export lon2=`expr $7 \+ $diste`
+echo " lat=$lat   lon=$lon   dist=$dist "
+export PROJ=proj
+sc5=1
+cbc=6
+cbt=8
+ if [ $6 -ge 75 ]; then
+  lat2=90
+  PROJ=nps
+  sc5=8
+  lon1=-180
+  lon2=180
+ fi
+ if [ $6 -le -75 ]; then
+  lat1=-90
+  PROJ=sps
+  sc5=8
+  lon1=-180
+  lon2=180
+ fi
+#exptstd=/nco/pmb/wx12gs/grads/bb/testk
+#  if [ $time1 = $ICdate ] ; then
+# inc=0
+#  else
+# idate=$(ndate $incdate $date)
+# if [ $time1 = $(ndate $incdate 
+#  fi
+#
+# begin grads mapset.gs creation
+#
+export var=${5:-"grdprs"}
+export vare=prs
+echo " var=$var "
+#
+cat << EOF > mapset.gs
+'open gfsguess.ctl'
+'open gfsanal.ctl'
+'open ecmanal.ctl'
+*
+'set display color white'
+'clear'
+'q file 1'
+'q file 2'
+'q file 3'
+*
+'enable print out.gr'
+*
+'set grads off'
+*'set grid off'
+'set lev $lev_select'
+'set mproj $PROJ'
+'set map 15 1 $cbt'
+'set lat $lat1 $lat2'
+*'set lon -270 90'
+'set lon $lon1  $lon2'
+*'set mpdset mres'
+*'set mpvals -120 -75 25 55'
+*
+'run /global/save/wx23ja/grads/rgbset.gs'
+*
+*'set gxout shaded'
+*'set clevs  0.5 1 1.5  2 2.5  3 3.5  4 4.5  5  5.5 6'
+* 'set clevs 2 4 6 8 10 12 14 16 18 20 22 24'
+*'set clevs 5 10 15 20 25 30 35 40 45 50 55 60'
+*'set ccols  0  34 33 32  21 22  23 24  25 26  27 28 29'
+*
+'define mag1=mag(u$var.1,v$var.1)'
+'define mag2=mag(u$var.2,v$var.2)'
+'define difu=u$var.1*1.94-u$var.2*1.94'
+'define difv=v$var.1*1.94-v$var.2*1.94'
+'define dmag=mag(difu,difv)'
+'set grads off'
+'set gxout contour'
+'set cthick $cbc'
+'d tmpprs.1'
+***vkk*'draw title ${title1} ${time1} TMP (U,V) ${lev_select}mb ' 
+'draw title ${title1} ${time1} TMP ${lev_select}mb ' 
+'set gxout barb'
+*'set ccolor 1'
+*'set arrscl 0.20'
+***vkk*'d skip(ugrdprs.1*1.94,1,1);vgrdprs.1*1.94'
+'print'
+'printim ${title1}_${time1}_${lev_select}_tmp_${8}_${lat1}_${lon1}.gif gif x800 y600'
+'c'
+'set grads off'
+*'set clevs 5 10 15 20 25 30 35 40 45 50 55 60'
+*'set ccols  0  34 33 32  21 22  23 24  25 26  27 28 29'
+*'d mag2'
+'set gxout contour'
+'set cthick $cbc'
+'d tmpprs.2'
+***vkk*'draw title ${title2} ${time1} TMP (U,V) ${lev_select}mb ' 
+'draw title ${title2} ${time1} TMP ${lev_select}mb ' 
+*'cbar'
+'set gxout barb'
+*'set ccolor 1'
+*'set arrscl 0.20'
+***vkk*'d skip(ugrdprs.2*1.94,1,1);vgrdprs.2*1.94'
+'print'
+'printim ${title2}_${time1}_${lev_select}_tmp_${8}_${lat1}_${lon1}.gif gif x800 y600'
+'c'
+'set grads off'
+*'set clevs 5 10 15 20 25 30 35 40 45 50 55 60'
+*'set ccols  0  34 33 32  21 22  23 24  25 26  27 28 29'
+*'d mag2'
+'set gxout contour'
+'set cthick $cbc'
+'d t$vare.3'
+***vkk*'draw title ${title3} ${time1} TMP (U,V) ${lev_select}mb '
+'draw title ${title3} ${time1} TMP ${lev_select}mb '
+*'cbar'
+'set gxout barb'
+*'set ccolor 1'
+*'set arrscl 0.20'
+***vkk*'d skip(u$vare.3*1.94,1,1);v$vare.3*1.94'
+'print'
+'printim ${title3}_${time1}_${lev_select}_tmp_${8}_${lat1}_${lon1}.gif gif x800 y600'
+'c'
+'set gxout contour'
+'set grads off'
+*'set clevs  0.5 1 1.5  2 2.5  3 3.5  4 4.5  5 5.5  6'
+*'set ccols  0  32 33 34  21 22  23 24  25 26  27 28 29'
+'set ccolor 1'
+*'set clevs -40 -20 -10 -5 -2 0  2  5  10  20 40 '
+*'set ccols  49  47  44 42  41 0 71 72 74  77 78 79'
+'set cthick $cbc'
+'d t$vare.3 - tmpprs.2 '
+*'d dmag'
+*
+'set gxout barb'
+'define difu=u$vare.3*1.94-u$var.2*1.94'
+'define difv=v$vare.3*1.94-v$var.2*1.94'
+ 'set clevs 0   5  10  20  30  40 50 '
+ 'set ccols  0  43  1   1  26  27 28 29'
+*'set ccols  0  61 52  43  26  27 28 29'
+***vkk*'d skip(difu,1,1);difv;mag(difu,difv)'
+*
+***vkk*'draw title ecmwf anl - gfs anl ${time1} TMP (U,V) diff ${lev_select}mb'
+'draw title ecmwf anl - gfs anl ${time1} TMP diff ${lev_select}mb'
+*
+'print'
+'printim ${title3}-${title2}_${time1}_${lev_select}_tmp_${8}_${lat1}_${lon1}.gif gif x800 y600'
+'c'
+'set gxout contour'
+'set grads off'
+*'set clevs  0.5 1 1.5  2 2.5  3 3.5  4 4.5  5 5.5  6'
+*'set ccols  0  32 33 34  21 22  23 24  25 26  27 28 29'
+'set ccolor 1'
+*'set clevs -40 -20 -10 -5 -2 0  2  5  10  20 40 '
+*'set ccols  49  47  44 42  41 0 71 72 74  77 78 79'
+'set cthick $cbc'
+'d tmpprs.2 - tmpprs.1 '
+*
+'set gxout barb'
+'define udiff=u$var.2*1.94-u$var.1*1.94'
+'define vdiff=v$var.2*1.94-v$var.1*1.94'
+ 'set clevs 0   5  10  20  30  40 50 '
+ 'set ccols  0  43  1   1  26  27 28 29'
+*'set ccols  0  61 52  43  26  27 28 29'
+***vkk*'d skip(udiff,1,1);vdiff;mag(udiff,vdiff)'
+*
+***vkk*'draw title gfs anl - gfs guess ${time1} TMP (U,V) diff ${lev_select}mb'
+'draw title gfs anl - gfs guess ${time1} TMP diff ${lev_select}mb'
+*
+'print'
+'printim ${title2}-${title1}_${time1}_${lev_select}_tmp_${8}_${lat1}_${lon1}.gif gif x800 y600'
+'disable print out.gr'
+'set grads off'
+'quit'
+* 
+* 
+*
+EOF
+#
+# begin grads setup
+#
+/u/wx20mi/bin/grib2ctl.pl -verf $exptstd/gfs_guess_$pcpdy >  gfsguess.ctl
+/usrx/local/grads/bin/gribmap -i  gfsguess.ctl
+#
+/u/wx20mi/bin/grib2ctl.pl -verf $exptstd/gfs_anal_$cpdy > gfsanal.ctl
+/usrx/local/grads/bin/gribmap -0 -i gfsanal.ctl
+#
+/u/wx20mi/bin/grib2ctl.pl -verf $exptstd/ecm_anal_$cpdy > ecmanal.ctl
+/usrx/local/grads/bin/gribmap -0 -i ecmanal.ctl
+  if [ $3 = "b" ] ; then
+/usrx/local/grads/bin/2.0.a3/xgrads -lbc "run mapset.gs"
+  else
+/usrx/local/grads/bin/2.0.a3/xgrads -lc "run mapset.gs"
+  fi
+/usrx/local/grads/bin/2.0.a3/xgxps  -c -i out.gr -o out.ps
+ls -l out.ps
+#/global/save/wx23ja/script/rzdmftp
+# lpr -P phaser4 out.ps
+

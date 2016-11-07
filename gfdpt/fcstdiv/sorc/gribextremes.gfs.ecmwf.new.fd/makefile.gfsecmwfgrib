@@ -1,0 +1,45 @@
+SHELL=/bin/sh
+#
+#extave.f90  ngribdifs.f90  grib_dist.f90  oldread_grib.f90  parardgrib.f90  r3grib.f90  rdgrib.f90  read_grib.f90 
+SRCS =  gfsecmwfgrib.f90  read_grib.f90  grib_dist.f90  ngribdifs.f90  troplocdist.f90	
+OBJS =  gfsecmwfgrib.o  read_grib.o  grib_dist.o  ngribdifs.o  troplocdist.o
+
+# Tunable parameters
+#
+# FC		Name of the fortran compiling system to use
+# LDFLAGS	Flags to the loader
+# LIBS		List of libraries
+# CMD		Name of the executable
+#
+FC = ifort
+LIBS = -L/nwprod/lib -lw3emc_8 -lw3nco_8 -lbacio_8
+CMD = gfsecmwfgrib.x
+
+FFLAGS = -O -g -traceback -C -integer-size 64 -real-size 64 -assume byterecl -assume nobscc -assume noold_ldout_format -free
+
+# Lines from here on down should not need to be changed.  They are the
+# actual rules which make uses to build a.out.
+#
+
+all:		$(CMD)
+
+$(CMD):		$(OBJS)
+	$(FC) $(LDFLAGS) -o $(@) $(OBJS) $(LIBS)
+
+.SUFFIXES: .o .f90
+
+.f90.o:
+	$(FC) $(FFLAGS) -c $<
+
+clean:
+	-rm -f $(OBJS)
+
+clobber:	clean
+	-rm -f $(CMD) $(CMD).prof
+
+void:	clobber
+	-rm -f $(SRCS) makefile
+
+install:
+	cp $(CMD) ../../exec
+

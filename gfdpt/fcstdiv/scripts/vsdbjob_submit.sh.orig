@@ -1,0 +1,110 @@
+#!/bin/sh
+set -x
+
+##-------------------------------------------------------------------
+## V. Krishna Kumar/NCO/PMB April 2011 - This is a truncated version of EMC's 
+## Verification System Data Base (VSDB) modified for the purpose
+## of computing Forecast (GFS) - Forecast (ECMWF) correlation based
+## on the principle of computing the traditional Anomaly Correlation (AC)
+## Scores between different models, for example GFS and ECMWF or GFS and
+## UKMET etc. For the F-F correlation, we use ECMWF forecasts as verifying
+## analyses for the GFS using the AC method. Please read the original comments 
+## below from Fanglin Yang/EMC/Global Modeling Branch
+## Fanglin Yang,  June 2008
+## E-mail: fanglin.yang@noaa.gov, Tel: 301-7638000 x 7296
+## Global Weather and Climate Modeling Branch, EMC/NCEP/NOAA/
+## 1. This package generates forecast perfomance stats in VSDB format 
+##    and makes a variety of graphics to compare anomaly correlation 
+##    and RMSE among different experiments. It also makes graphics of
+##    CONUS precip skill scores and fits to rawindsonde observations.
+##    The different components can be turned on or off as desired. 
+##    Graphics are sent to a web server for display (for example:  
+##    http://www.emc.ncep.noaa.gov/gmb/wx24fy/vsdb_glopara/pru8/)
+## 2. The script can handle experiments executed on different machines.
+##    Users only need to specify the name, directory and the computer 
+##    name from which an experiment is executed.  
+## 3. Credit and Acknowledgment:
+##    Binbin Zhou provided the source script for creating VSDB database.
+##    Suranjana Saha provided the source script for making fit-to-obs 
+##    maps. Yujian Zhu provided the source script for making precip 
+##    skill score maps. All source codes and scripts have been extensively
+##    modified to be included in this package. Shrinivas Moorthi helped 
+##    with adding the script to port forecast data from different machines.  
+##    Glenn White, Steve Lord and Xu Li made suggestions for creating and 
+##    improving the significance test for AC dieoff curves and RMSE growth
+##    curves. Russ Treaton modified the GrADS code for making precip maps
+##    and made suggestions to include consensus analysis for verification.
+##    
+##-------------------------------------------------------------------
+
+MAKEVSDBDATA=YES           ;#To create VSDB date
+#MAKEVSDBDATA=NO            ;#VSDB data already exists
+
+batch=no                   ;#to run jobs in batch mode
+
+#----------------------------------------------------------------------
+export ACCOUNT=GFS-MTN                                  ;#ibm computer ACCOUNT task
+export CUE2RUN=dev                                      ;#dev or devhigh or 1
+export webhost=lnx321.ncep.noaa.gov                     ;#host for web display
+export webhostid=sdm                                    ;#login id on webhost 
+
+###export ftpdir=/home/nco/sdm/sdm/fcstdiv/main/correlations ;#where maps are displayed on webhost            
+export ftpdir=/home/nco/sdm/sdm/fcstdiv/main ;#where maps are displayed on webhost            
+export doftp="NO"                                        ;#whether or not to sent maps to ftpdir
+
+export vsdbsave=/nco/$grp/f-f-divergence/vsdb_data        ;#place where vsdb database is saved
+export vsdbhome=${vsdbhome:-/nco/$grp/f-f-divergence}     ;#home
+export canldir=/global/shared/stat/canl                  ;#consensus analysis directory
+
+### --------------------------------------------------------------
+###   make vsdb database
+      if [ $MAKEVSDBDATA = YES ] ; then
+### --------------------------------------------------------------
+export cyclist="$cyc"                             ;#cycle to verify
+export expnlist="pra"                             ;#experiment names 
+export expdlist="/nco/$grp/f-f-divergence/grib_files"         ;#exp directories
+export complist="cirrus"                          ;#computers where experiments are run
+###export complist="stratus"                        ;#computers where experiments are run
+
+export anl_type=gfs                               ;#analysis type for verification: gfs, gdas or canl
+if [ "$cyclist" -eq '00' ]; then
+   export spdy=`date +%Y%m%d`
+elif [ "$cyclist" -eq '12' ]; then
+   export spdycyc=`/nwprod/util/exec/ndate -24 $(date +%Y%m%d)$cyclist`
+   export spdy=`echo $spdycyc | cut -c1-8`
+else
+   echo "ECWMF GRIB files for cycle t${cyclist}z not available for F-F correlation calculations"
+   exit
+fi
+
+export vlength=120                        ;#forecast length in hour
+export fcstdtcy=`/nwprod/util/exec/ndate +$vlength ${spdy}${cyclist}`
+fcstdate=`echo $fcstdtcy | cut -c 1-8`
+export DATEST=$spdy                       ;#forecast starting date
+export DATEND=$fcstdate                   ;#forecast ending date
+#
+# For retrospective runs
+#export DATEST=20101101                   ;#forecast starting date
+#export DATEND=20101205                   ;#forecast ending date
+#
+export asub=a                             ;#string in pgb anal file after pgb, say, pgbanl, pgbhnl 
+export fsub=f                             ;#string in pgb fcsy file after pgb, say, pgbf06, pgbh06
+
+
+export rundir=/stmp/$LOGNAME/f-f-divergence/vsdb_exp
+export listvar=vsdbsave,vsdbhome,cyclist,expnlist,expdlist,complist,DATEST,DATEND,vlength,anl_type,rundir,canldir,asub,fsub
+
+
+## pgb files must be in the form of  ${expdlist}/${expnlist}/pgb${fsub}${fh}.gfs.yyyymmdd${cyc}
+if [ $batch = yes ]; then
+  /u/wx20mi/bin/sub -e $listvar -a $ACCOUNT  -q $CUE2RUN -p 1/1 -t 3:00:00 \
+     -j vstep1 -o $rundir/vstep1.out  ${vsdbhome}/scripts/verify_exp_step1.sh
+else
+     ${vsdbhome}/scripts/verify_exp_step1.sh
+fi
+
+### --------------------------------------------------------------
+      fi                                       
+### --------------------------------------------------------------
+exit
+

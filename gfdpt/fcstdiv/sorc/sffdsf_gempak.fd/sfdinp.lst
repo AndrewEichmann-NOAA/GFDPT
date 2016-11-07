@@ -1,0 +1,144 @@
+IBM XL Fortran for AIX, V12.1 (5724-U82) Version 12.01.0000.0001 --- /gpfs/c/nco/ops/nwprod/sorc/sffdsf_gempak.fd/sfdinp.f 01/28/09 14:52:18
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         32              CR              DBG             DDIM
+         ESCAPE          FULLPATH        I4              INLGLUE
+         NOLIBESSL       NOLIBPOSIX      OBJECT          SOURCE
+         STRICT          SWAPOMP         THREADED        UNWIND
+         NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         ALIAS_SIZE(65536)     FIXED(72)             MAXMEM(-1)
+         OPTIMIZE(2)           SPILLSIZE(548)        STACKTEMP(0)
+  
+  
+         ==  Options Of Character Type  ==
+         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR6)            ATTR()                AUTODBL(NONE)
+         CHECK()               DESCRIPTOR(V1)        DIRECTIVE(IBM*,IBMT)
+         ENUM()                FLAG(I,I)             FLOAT(RNDSNGL,MAF,FOLD,RNGCHK,SINGLE)
+         FLTTRAP(OVERFLOW,ZERODIVIDE,INVALID,ENABLE)
+         HALT(S)               IEEE(NEAR)            INITAUTO(FF911299)
+         INTSIZE(4)            LANGLVL(EXTENDED)     POSITION(APPENDOLD)
+         REALSIZE(4)           NOSAVE()              SIGTRAP()
+         TUNE(PWR6)            UNROLL(AUTO)          XREF(FULL)
+         XLF2003(NOPOLYMORPHIC,NOBOZLITARGS,NOSTOPEXCEPT,NOVOLATILE,NOAUTOREALLOC,OLDNANINF)
+         XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC,OLDPAD)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |	SUBROUTINE  SFDINP  ( sfefil, sfoutf, area, sfprmf, dattim,
+          2 |     +			      timstn, frmt, iret )
+          3 |C************************************************************************
+          4 |C* SFDINP								*
+          5 |C*									*
+          6 |C* This subroutine gets the input variables for SFFDSF.			*
+          7 |C*									*
+          8 |C* SFDINP  ( SFEFIL, SFOUTF, AREA, SFPRMF, DATTIM, TIMSTN, FRMT, IRET )	*
+          9 |C**									*
+         10 |C* Log:									*
+         11 |C* K. F. Brill/NMC	 9/94						*
+         12 |C* K. Brill/NMC		 1/95	Add SOURCE				*
+         13 |C************************************************************************
+         14 |	CHARACTER*(*)	sfefil, sfoutf, area, sfprmf, dattim,
+         15 |     +			timstn, frmt
+         16 |C------------------------------------------------------------------------
+         17 |C*	Get the input variables.
+         18 |C
+         19 |	CALL IP_STR  ( 'SFEFIL', sfefil, ier1 )
+         20 |	CALL IP_STR  ( 'SFOUTF', sfoutf, ier2 )
+         21 |	CALL IP_STR  ( 'AREA',   area,   ier3 )
+         22 |	CALL IP_STR  ( 'SFPRMF', sfprmf, ier4 )
+         23 |	CALL IP_STR  ( 'DATTIM', dattim, ier5 )
+         24 |	CALL IP_STR  ( 'TIMSTN', timstn, ier6 )
+         25 |	CALL IP_STR  ( 'FORMAT',  frmt,   ier7 )
+         26 |C
+         27 |	iret = ier1 + ier2 + ier3 + ier4 + ier5 + ier6 + ier7
+         28 |	IF  ( iret .ne. 0 )  iret = -2
+         29 |C*
+         30 |	RETURN
+         31 |	END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+area                             Reference argument, Character*(*), Offset: 0, Alignment: byte
+                                 0-14.32$  0-1.40  0-21.27
+ 
+dattim                           Reference argument, Character*(*), Offset: 0, Alignment: byte
+                                 0-14.46$  0-1.54  0-23.27
+ 
+frmt                             Reference argument, Character*(*), Offset: 0, Alignment: byte
+                                 0-15.18$  0-2.24  0-25.28
+ 
+ier1                             Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-19.35  0-27.9
+ 
+ier2                             Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-20.35  0-27.16
+ 
+ier3                             Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-21.35  0-27.23
+ 
+ier4                             Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-22.35  0-27.30
+ 
+ier5                             Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-23.35  0-27.37
+ 
+ier6                             Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-24.35  0-27.44
+ 
+ier7                             Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-25.36  0-27.51
+ 
+ip_str                           External Subroutine
+                                 0-19.7  0-20.7  0-21.7  0-22.7  0-23.7  0-24.7  0-25.7
+ 
+iret                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-2.30  0-27.2@  0-28.8  0-28.23@
+ 
+sfdinp                           Subroutine
+                                 0-1.14$
+ 
+sfefil                           Reference argument, Character*(*), Offset: 0, Alignment: byte
+                                 0-14.16$  0-1.24  0-19.27
+ 
+sfoutf                           Reference argument, Character*(*), Offset: 0, Alignment: byte
+                                 0-14.24$  0-1.32  0-20.27
+ 
+sfprmf                           Reference argument, Character*(*), Offset: 0, Alignment: byte
+                                 0-14.38$  0-1.46  0-22.27
+ 
+timstn                           Reference argument, Character*(*), Offset: 0, Alignment: byte
+                                 0-15.10$  0-2.16  0-24.27
+ 
+** sfdinp   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    sfdinp.f                    12/18/08   11:46:13
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................      31
+1501-510  Compilation successful for file sfdinp.f.
+1501-543  Object file created.

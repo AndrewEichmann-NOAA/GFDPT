@@ -1,0 +1,7 @@
+$ hostname
+c2n6.ncep.noaa.gov
+$ crontab -l
+44 14 * * * sh /nco/pmb/f-f-divergence/scripts/job_corr_gfs_vs_ecmwf_0012z.sh > /ptmp/wx12ss/vsdb_v07_messages/logfile_vsdb0012 2>&1
+42 14 * * * sh /nco/pmb/f-f-divergence/scripts/run_job_gfs_ecmwf_gribextremes_00.sh > /ptmp/wx12ss/vsdb_v07_messages/logfile_gribextremes00 2>&1
+
+

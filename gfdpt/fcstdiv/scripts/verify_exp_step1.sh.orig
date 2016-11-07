@@ -1,0 +1,173 @@
+#!/bin/sh
+set -x
+
+#----------------------------------------------------------------------
+#----------------------------------------------------------------------
+#     NCEP EMC GLOBAL MODEL VERIFICATION SYSTEM
+#
+# Fanglin Yang, April 2007
+#   1. The script computes partial sums and save as vsdb database
+#   2. For verification vtype=anom, anomalies are derived for forecasts
+#      from all models/cycles using the same NCEP CDAS 30-year
+#      climatology (/nwprod/fix/cmean_1d.x) before computing scores.
+#   3. For verification vtype=pres, forecasts are directly verified 
+#      aganist each experiment's own analysis or any given analysis. 
+# Fanglin Yang, Sep 2008   
+#   1. Added the option to use different analyses for verification 
+# Shrinivas Moorthi and Fanglin Yang, Dec 2008  
+#   1. Added the option to get data from different machines.
+#----------------------------------------------------------------------
+#----------------------------------------------------------------------
+
+export expnlist=${expnlist:-${1:-"prx"}}                       ;#experiment name
+export expdlist=${expdlist:-${2:-"/global/shared/glopara"}}    ;#experiment directory
+export complist=${complist:-${3:-"mist.ncep.noaa.gov"}}        ;#computers where experiments are run 
+export cyclist=${cyclist:-${4:-"00"}}                          ;#cycle
+export DATEST=${DATEST:-${5:-20080201}}                        ;#forecast starting date
+export DATEND=${DATEND:-${6:-20080201}}                        ;#forecast ending date
+export vlength=${vlength:-${7:-384}}                           ;#forecast length in hour
+export anl_type=${anl_type:-${8:-gfs}}                         ;#analysis type for verification: gfs, gdas, or canl
+export asub=${asub:-${9:-a}}                                   ;# string in pgb anal file after pgb
+export fsub=${fsub:-${10:-f}}                                  ;# string in pgb fcst file after pgb 
+#
+
+export canldir=${canldir:-/global/shared/stat/canl}                          ;#consensus analysis directory      
+export vsdbsave=${vsdbsave:-/nco/$grp/f-f-divergence/vsdb_data}  ;#place where vsdb database is saved
+export vsdbhome=${vsdbhome:-/nco/$grp/f-f-divergence}            ;#script home, CHANGE TO YOUR SCRIPT HOLDER 
+export rundir=${rundir:-/stmp/${LOGNAME}/f-f-divergence/vsdb_exp}                           ;#temporary workplace
+
+mkdir -p $rundir $vsdbsave 
+
+myhost=`echo $(hostname) |cut -c 1-1 `
+nday=$((vlength/24))
+vlength=$((nday*24))
+
+#--------------------------------------
+#  Create VSDB database
+
+export screxe=${screxe:-$vsdbhome/scripts}
+export homeexec=${homeexec:-$vsdbhome/exec}
+export fixexe=${fixexe:-$vsdbhome/fix}
+export wgrb=${wgrib:-/nwprod/util/exec/wgrib}
+export gbindex=${gbindex:-/nwprod/util/exec/grbindex}
+export cpygb=${cpygb:-/nwprod/util/exec/copygb}
+export ndate=${ndate:-/nwprod/util/exec/ndate}
+
+cdump=${cdump:-gfs} 
+hinc=${hinc:-24}                  
+finc=${finc:-24}                 
+
+nexp=0 ; for run in $expnlist ; do nexp=$((nexp+1)) ; done
+n=-1 ; for runn in $expnlist ; do n=$((n+1)) ; expname[n]=$runn ; done
+n=-1 ; for rund in $expdlist ; do n=$((n+1)) ; expdir[n]=$rund  ; done
+n=-1 ; for comp in $complist ; do n=$((n+1)) ; compname[n]=$comp  ; done
+echo ${expname[n]} ${expdir[n]} ${compname[n]}
+#
+
+nn=-1
+while [ $((nn+=1)) -lt $nexp ] ; do
+ for cyc in $cyclist; do
+
+  export exp=${expname[nn]}           ;#exp name
+  export exp_dir=${expdir[nn]}        ;#exp directory
+  export CLIENT=${compname[nn]}       ;#computer used
+  export HH=$cyc                      ;#verification cycle
+  export obtype=$exp                  ;#obs/analysis data type for verification
+  myclient=`echo $CLIENT |cut -c 1-1 `
+  
+  #----------------------------------------------------------
+  # copy data to temporary directory following standard name convention 
+   loop=$($ndate -$vlength ${DATEST}${HH})
+   while [ $loop -le ${DATEND}${HH} ] ; do
+    IDAY=`echo $loop |cut -c 1-8`
+    comout=$rundir/$exp/${exp}.${IDAY}
+    mkdir -p $comout; cd $comout
+       ffcst=00
+       while [ $ffcst -le $vlength ] ; do
+#VKK#         filein=$exp_dir/$exp/pgb${fsub}${ffcst}.$cdump.${IDAY}${HH}
+         filein=$exp_dir/$exp/pgb${fsub}${ffcst}.${IDAY}${HH}
+         fileout=${exp}.t${HH}z.pgrbf${ffcst}
+         rm $fileout
+         if [ $myhost = $myclient ]; then
+           ln -fs  $filein $fileout
+         else
+          scp -p ${LOGNAME}@${CLIENT}:$filein $fileout
+         fi
+         ffcst=$((ffcst+finc))
+       done
+#
+       fileout=${exp}.t${HH}z.pgrbanl        
+       rm $fileout
+       if [ $anl_type = "canl" ]; then 
+        if [ -s $canldir/pgb${asub}nl.${IDAY}${HH} ] ; then
+         ln -fs $canldir/pgb${asub}nl.${IDAY}${HH} $fileout
+        else
+          scp -p ${LOGNAME}@${CLIENT}:$canldir/pgb${asub}nl.${IDAY}${HH} $fileout
+        fi
+       else
+#VKK#        filein=${anl_dir:-$exp_dir/$exp}/pgb${asub}nl.$anl_type.${IDAY}${HH}
+        filein=${anl_dir:-$exp_dir/$exp}/pgb${asub}nl.${IDAY}${HH}
+        if [ $myhost = $myclient ]; then
+          if [ -s $filein ]; then
+            ln -fs  $filein $fileout
+          else
+            echo ' WARNING : pgbanl file not found ; using pgbf00 file instead'
+            ln -fs  ${exp}.t${HH}z.pgrbf00 $fileout
+          fi
+        else
+          scp -p ${LOGNAME}@${CLIENT}:$filein $fileout
+          if [ $? -ne 0 ] ; then
+           echo ' WARNING : pgbanl file not found ; using pgbf00 file instead'
+           ln -fs  ${exp}.t${HH}z.pgrbf00 $fileout
+          fi
+        fi
+       fi
+    loop=$($ndate +$hinc $loop)
+   done
+
+  #-------------------------------------------------------------------------
+  # the program should run without changes below. Will, you can if you want.
+  #-------------------------------------------------------------------------
+   CDATE=${DATEST}${HH}
+   while [ $CDATE -le ${DATEND}${HH} ] ; do
+     VFDAY=`echo ${CDATE} | cut -c 1-8`
+
+     #--------------------------------------------------------------
+     #  Three groups of verfication on regular grid (G2, G3, or G4)
+     #    anom:  anomaly relative to NCEP CDAS Climatology
+     #    pres:  total fields on standard pressure levels
+     ##   sfc :  total fields on a single/surface layer
+     #------------------------
+     for group in anom pres ; do
+     #------------------------
+       gd=G2; gdtype=-g2          ### 2.5x2.5
+
+       export work=${rundir}/${CDATE}/${exp}/${HH}/${group}
+       rm -r $work;  mkdir -p $work
+       cd $work     ||exit 8
+       chmod u+rw *; rm -f *
+
+       echo "======== verfication control cntl_"$group".sh ========"
+       ${screxe}/cntl_${group}.sh $exp ${VFDAY} ${HH} ${obtype} ${gd}
+                                                                         
+       echo "======= start prepg2g.sh for $exp $group ======="
+       ${screxe}/prepg2g_exp.sh $rundir $exp $gdtype $group < ${group}_${exp}.ctl >output.prepg2g
+      
+       echo "======= start getclimateTime.sh ======="
+       if [ $group = "anom" ]; then ${screxe}/getclimateTime_new.sh $exp $gdtype ; fi
+      
+       echo "======= start run_g2g_wave.sh   ======="
+       export savedir=${vsdbsave}/${group}/${HH}Z/${exp}
+       ${screxe}/run_g2g_wave.sh $exp ${VFDAY}${HH}
+      
+     #------------------------
+     done 
+     #------------------------
+    CDATE=$($ndate +$finc $CDATE)
+   done   
+  #---------------------------------------
+
+ done ;#end of cyclist
+done ;#end of explist
+#--------------------
+

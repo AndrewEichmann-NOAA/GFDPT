@@ -1,0 +1,47 @@
+Binbin Zhou's version:  /meso/save/wx20bz/grid2grid/sorc.20070215
+--------------------------------------------------------
+04/06/2007
+
+1. Tests show weighting give smaller RMS than without weighting 
+2. Changed weighting coefficient in grid2grid.f from cos(latitude)/max[cos(latitudes)] to cos(latitude), 
+   add an array "weigh" to accumulte area_factor(i)=cos(latitude) in sal1l2.f, sl1l2.f, vl1l2.f, val1l2.f, fho.f and afho.f.  
+3. in original grid2grid.f, area_factor(i) was wrong, missing pi=4.*datan(1.0d0)
+4. In sl1l2.f, exclude bad and undefined values for partial sums. (for example, soil moisture is not defined over ocean)
+5. In readcntl.f set mask to exclude undefined Soil values (0.0) over ocean points
+        do n = 1, numvarbl
+         if(k5(n).eq.11.and.k6(n).eq.112) continue_mrk(n)=9   !Soil Temperature
+         if(k5(n).eq.114.and.k6(n).eq.112) continue_mrk(n)=9  !Soil Moisture
+        enddo
+    In sl1l2.f, continue_mrk(n)=9 is used to exclude ocean points 
+
+
+----------------------------------------
+01/31/2007
+
+Fanglin,
+ 
+     I just modified g2g sorc code including weighting for grid mesh 
+for high latitude grids.This is particularly important for GFS.
+
+ The method is multiplying a cosin weighting factor to each grid's 
+contribution when accumulating the partial sum.  The weighting factor 
+is computed as
+
+      cos(latitude)/max[cos(latitudes)],
+
+where max[cos(latitudes)] is the greatest value searched from whole 
+domain grids.
+ For global model, it is 1.0 ( latitude=0.0 at the equator)
+
+The new code is in /meso/save/wx20bz/grid2grid/sorc.20070126
+
+To run the new code, a new shell parameter "lat_weight" should be 
+explored in top script and print it at the end of user control file as 
+well. the lat_weight can be 
+open and close if you want. For example,
+
+explore lat_weight="yes"  # weighting
+explore lat_weight="no"   # no weighting
+
+Because I don't run GFS, please test the new code in your global 
+verification. Thanks.
