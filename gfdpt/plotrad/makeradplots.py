@@ -6,6 +6,8 @@ import matplotlib.colors as colors
 import matplotlib.cm as cmx
 import numpy as np
 import sys
+import os
+import radplot as rp
 
 
 date='2015092100'
@@ -13,131 +15,32 @@ date='2015092200'
 date='2015092600'
 date='2015101700'
 date='2015101800'
-#date='2015121000'
+date='2015121000'
+date='2016071100'
 
 
-instrument='atms_npp'
-instrument='amsua_n19'
-#instrument='amsua_n18'
+#instrument='atms_npp'
+#instrument='amsua_n19'
+instrument='amsua_n18'
 
 makeplots=True
-#makeplots=False
+makeplots=False
+
+imgtype='.png'
 
 if len(sys.argv) > 1:
     date = sys.argv[1]
     instrument = sys.argv[2]
 
 print date,instrument
-#sys.exit()
-
-def plotglobal(m,obs,obsxpt,obsypt,titlestr,vmin,vmax,targetvars,targetamps,targetxpt,targetypt,outfilename):
-    m.drawcoastlines()
-    m.drawmeridians(np.arange(-180.,181.,60.),labels=[True,True,True])
-    m.drawparallels(np.arange(-90.,91.,30.),labels=[True,True,True]) 
-
-    print vmin,vmax
-    cNorm  = colors.Normalize(vmin=vmin, vmax=vmax)
-    scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=rnbw)
-    scalarMap.set_array(obs)
-
-    colorVal = scalarMap.to_rgba(obs)
-
-#    foo=m.scatter(obsxpt,obsypt,c=obs,cmap=cm,marker='.',s=50,edgecolors='black',linewidth=0.15) 
-#    foo=m.scatter(obsxpt,obsypt,c=obs,cmap=cm,marker='.',s=40,edgecolors='black',linewidth=0.15) 
-#    foo=m.scatter(obsxpt,obsypt,c=obs,cmap=cm,marker='.',s=30,edgecolors='black',linewidth=0.15) 
-#    foo=m.scatter(obsxpt,obsypt,c=obs,cmap=cm,marker='.',s=20,edgecolors='black',linewidth=0.15) 
-#    foo=m.scatter(obsxpt,obsypt,c=obs,cmap=cm,marker='.',s=10,edgecolors='black',linewidth=0.15) 
-#    foo=m.scatter(obsxpt,obsypt,c=obs,cmap=cm,marker='.',s=15,edgecolors='black',linewidth=0.15) 
-    foo=m.scatter(obsxpt,obsypt,c=colorVal,marker='.',s=15,edgecolors='black',linewidth=0.15) 
-    m.scatter(targetxpt,targetypt,marker='+',s=50,c='red',linewidth=1.5) 
 
 
-    textypts=[]
-    textxpts=[]
-    for target in range(numgepoints):
-        xoffset=100000
-	yoffset=100000
-	targetstr=targetvars[target]+'/'+str(targetamps[target])
-	textxpt=targetxpt[target]+xoffset
-	textypt=targetypt[target]+yoffset
-	textxpts.append(textxpt)
-	textypts.append(textypt)
-        
-	plt.text(textxpt,textypt,targetstr)
+if not os.path.isdir(date): os.mkdir(date)
+os.chdir(date)
 
-#    cbar = m.colorbar(foo,location='bottom',pad="5%")
-#    cbar = m.colorbar(fig=plt.gcf(),location='bottom',pad="5%")
-#    cbar = m.colorbar(mappable=plt.gci(),location='bottom',pad="5%")
-    cbar = m.colorbar(scalarMap,location='bottom',pad="5%")
-    cbar.set_label('brightness temperature (K)')
+if not os.path.isdir(instrument): os.mkdir(instrument)
+os.chdir(instrument)
 
-    plt.title(titlestr,y=1.06)
-
-
-#plt.savefig('foo.png')
-#plt.savefig('foo.pdf')
-#plt.savefig('foo.eps')
-#plt.savefig('foo.tiff')
-    plt.savefig(outfilename)
-    #plt.show()
-    plt.close('all')
-################# END PLOTGLOBAL ###################################
-
-def plottarget(m,obs,obsxpt,obsypt,titlestr,vmin,vmax,\
-        targetvar,targetamp,targetlon,targetlat,outfilename):
-
-#    m = Basemap(projection='stere',width=4800000,height=3600000,\
-#                                            resolution='c',\
-#                                            lon_0=targetlon,lat_0=targetlat)
-
-    maxlat=90.0
-    minlat=-90.0
-    maxlon=180.0
-    minlon=-180.0
-
-    maplats=np.arange(minlat,maxlat)
-    maplons=np.arange(minlon,maxlon)
-  
-    parallellats=maplats[maplats%5==0]
-    if abs(targetlat) > 50 :
-        meridianlons=maplons[maplons%10==0]
-    else:
-        meridianlons=maplons[maplons%5==0]
-
-
-    m.drawcoastlines()
-
-    m.drawmeridians(meridianlons,labels=[True,True,True,True])
-    m.drawparallels(parallellats,labels=[True,True,True,True]) 
-
-    cNorm  = colors.Normalize(vmin=vmin, vmax=vmax)
-    scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=rnbw)
-
-    scalarMap.set_array(obs)
-    colorVal = scalarMap.to_rgba(obs)
-
-#    foo=m.scatter(obsxpt,obsypt,c=obs,cmap=cm,marker='.',s=300,edgecolors='black',linewidth=0.15) 
-#    foo=m.scatter(obsxpt,obsypt,c=obs,cmap=cm,marker='.',s=300,edgecolors='black',linewidth=0.15) 
-#    foo=m.scatter(obsxpt,obsypt,c=obs,cmap=cm,marker='.',s=300,edgecolors='black',linewidth=0.15) 
-    foo=m.scatter(obsxpt,obsypt,c=colorVal,marker='.',s=300,edgecolors='black',linewidth=0.15) 
-
-    targetxpt,targetypt=m(targetlon,targetlat)
-    m.scatter(targetxpt,targetypt,marker='+',s=50,c='red',linewidth=1.5) 
-
-
-#    if obs.size > 0 :
-#    cbar = m.colorbar(foo,location='bottom',pad="5%")
-    cbar = m.colorbar(scalarMap,location='bottom',pad="5%")
-    cbar.set_label('brightness temperature (K)')
-
-    plt.title(titlestr,y=1.06)
-
-
-    plt.savefig(outfilename)
-    #plt.show()
-    plt.close('all')
-#    plt.close()
-################# END PLOTTARGET ###################################
 
 # get the gribxtremes points
 
@@ -145,6 +48,7 @@ targetvars=[]
 targetlats=[]
 targetlons=[]
 targetamps=[]
+targetstrs=[]
 numgepoints=0
 
 gefile = '/data/users/aeichmann/gfdpt-checkout/gfdpt/gribextremes/run'+date+'/fort.55'
@@ -157,15 +61,18 @@ with open(gefile,'r') as f:
 		targetamps.append(float(columns[4]))
 		numgepoints=numgepoints+1
 
+for i,val in enumerate(targetvars):
+    targetstrs.append(val+'_'+str(targetlats[i])+'_'+str(targetlons[i]))
 
 print targetvars
 print targetlats
 print targetlons
 print targetamps
+print targetstrs
 
 #sys.exit()
 
-
+listoftargets=[]
 
 
 diagfiledir='/data/users/aeichmann/COATsvn/radstat/'
@@ -201,6 +108,8 @@ channels= list(set(diagradanl.channel))
 m = Basemap(projection='mill',llcrnrlat=-90,urcrnrlat=90,\
 		                            llcrnrlon=-180,urcrnrlon=180)
 
+maxxpt,maxypt=m(180,90)
+
 rnbw = cm = plt.get_cmap('rainbow') 
 
 for i,val in enumerate(targetlons):
@@ -218,9 +127,9 @@ ambtargetimagesrel=[[] for x in xrange(numgepoints)]
 anlobstargetimages=[[] for x in xrange(numgepoints)]
 gesobstargetimages=[[] for x in xrange(numgepoints)]
 
+#channels=[1,2,3]
 
 for ichan in channels:
-#for ichan in [6,7,8]:
 
     # get indices of all matching channels
     idxallanl = diagradanl.channel == ichan
@@ -272,42 +181,42 @@ for ichan in channels:
     
     field=diagradanl.obs[idxanl]
     titlestr = 'Tb ana ' + date + ' ' + instrument + ' Ch ' + str(ichan)
-    outfilename=date+'/'+instrument+'_ana_obs_Ch%02d' % ichan + '_' + date + '.jpg'
+    outfilename=instrument+'_ana_obs_Ch%02d' % ichan + '_' + date + imgtype
     vmin=min(field)
     vmax=max(field)
     if makeplots:
     	print 'generating ' + outfilename 
-	plotglobal(m,field,obsxpt,obsypt,titlestr,vmin,vmax,targetvars,targetamps,targetxpt,targetypt,outfilename)
+	rp.plotglobal(m,field,obsxpt,obsypt,titlestr,vmin,vmax,targetvars,targetamps,targetxpt,targetypt,outfilename)
 
     field=diagradges.obs[idxges]
     titlestr = 'Tb ges ' + date + ' ' + instrument + ' Ch ' + str(ichan)
-    outfilename=date+'/'+instrument+'_ges_obs_Ch%02d' % ichan + '_' + date + '.jpg'
+    outfilename=instrument+'_ges_obs_Ch%02d' % ichan + '_' + date + imgtype
     vmin=min(field)
     vmax=max(field)
     if makeplots:
     	print 'generating ' + outfilename 
-	plotglobal(m,field,obsxpt,obsypt,titlestr,vmin,vmax,targetvars,targetamps,targetxpt,targetypt,outfilename)
+	rp.plotglobal(m,field,obsxpt,obsypt,titlestr,vmin,vmax,targetvars,targetamps,targetxpt,targetypt,outfilename)
 
 
     oma_bc = diagradanl.obs[idxanl] - diagradanl.hx[idxanl]
     titlestr = 'O-A (w/ bc) ' + date + ' ' + instrument + ' Ch ' + str(ichan)
-    outfilename=date+'/'+instrument+'_ana_OmA_Ch%02d' % ichan + '_' + date + '.jpg'
+    outfilename=instrument+'_ana_OmA_Ch%02d' % ichan + '_' + date + imgtype
 
     vmin=min(oma_bc)
     vmax=max(oma_bc)
     if makeplots:
     	print 'generating ' + outfilename 
-    	plotglobal(m,oma_bc,obsxpt,obsypt,titlestr,vmin,vmax,targetvars,targetamps,targetxpt,targetypt,outfilename)
+    	rp.plotglobal(m,oma_bc,obsxpt,obsypt,titlestr,vmin,vmax,targetvars,targetamps,targetxpt,targetypt,outfilename)
 
 
     omb_bc = diagradges.obs[idxanl] - diagradges.hx[idxanl]
     titlestr = 'O-B (w/ bc) ' + date + ' ' + instrument + ' Ch ' + str(ichan)
-    outfilename=date+'/'+instrument+ '_ges_OmB_Ch%02d' % ichan + '_' + date + '.jpg'
+    outfilename=instrument+ '_ges_OmB_Ch%02d' % ichan + '_' + date + imgtype
     vmin=min(omb_bc)
     vmax=max(omb_bc)
     if makeplots:
     	print 'generating ' + outfilename 
-    	plotglobal(m,omb_bc,obsxpt,obsypt,titlestr,vmin,vmax,targetvars,targetamps,targetxpt,targetypt,outfilename)
+    	rp.plotglobal(m,omb_bc,obsxpt,obsypt,titlestr,vmin,vmax,targetvars,targetamps,targetxpt,targetypt,outfilename)
 
 
     for i,val in enumerate(targetvars):
@@ -315,7 +224,10 @@ for ichan in channels:
    		
         targetlat=targetlats[i]
         targetlon=targetlons[i]
+        targetstr=targetstrs[i]
 
+
+        if not os.path.isdir(targetstr): os.mkdir(targetstr)
         
         if targetlat < -80:
             m = Basemap(projection='splaea',boundinglat=-70,lon_0=90,resolution='l')
@@ -329,32 +241,32 @@ for ichan in channels:
 
         if (obsanl.size > 0) :
 
-            outfilename=date+'/'+instrument+'_ana_obs_Ch%02d' % ichan + '_' + date + '_' + \
-                       val + '_' + str(targetlat) + '_' + str(targetlon) + '.jpg'
-
+            outfilename=targetstr+'/'+instrument+'_ana_obs_Ch%02d' % ichan + '_' + date + '_' + \
+                       val + '_' + str(targetlat) + '_' + str(targetlon) + imgtype
+            listoftargets.append(outfilename)
             vmin=min(obsanl)
 	    vmax=max(obsanl)
 
             anlobstargetimages[i].append(outfilename)
             if makeplots:
                 print 'generating ' + outfilename 
-                plottarget(m,obsanl,obsxpt,obsypt,titlestr,vmin,vmax,targetvars[i], \
+                rp.plottarget(m,obsanl,obsxpt,obsypt,titlestr,vmin,vmax,targetvars[i], \
                         targetamps[i],targetlon,targetlat,outfilename)
 
             titlestr = 'O-A (w/ bc) ' + date + ' ' + instrument + ' Ch ' + str(ichan) + ' ' + val + ' ' + str(targetamps[i])
 
-            outfilenamebase=date+'/'+instrument+'_ana_OmA_Ch%02d' % ichan + '_' + date + '_' + \
+            outfilenamebase=targetstr+'/'+instrument+'_ana_OmA_Ch%02d' % ichan + '_' + date + '_' + \
                          val + '_' + str(targetlat) + '_' + str(targetlon) 
 
 #            tableline = '<tr><td><img src="'
 
 	    vmin=-1.0
 	    vmax=1.0
-	    outfilename = outfilenamebase + '_fix.jpg'
+	    outfilename = outfilenamebase + '_fix' + imgtype
             omatargetimagesfix[i].append(outfilename)
             if makeplots:
                 print 'generating ' + outfilename 
-                plottarget(m,oma_bc,obsxpt,obsypt,titlestr,vmin,vmax,targetvars[i], \
+                rp.plottarget(m,oma_bc,obsxpt,obsypt,titlestr,vmin,vmax,targetvars[i], \
                     targetamps[i],targetlon,targetlat,outfilename)
 
 #            tableline = tableline + '"></td><td><img src="'
@@ -362,12 +274,12 @@ for ichan in channels:
             vmin=min(oma_bc)
 	    vmax=max(oma_bc)
 #	    outfilename = outfilenamebase + '_rel.tiff'
-	    outfilename = outfilenamebase + '_rel.jpg'
+	    outfilename = outfilenamebase + '_rel' + imgtype
 #            tableline = tableline + outfilename
             omatargetimagesrel[i].append(outfilename)
             if makeplots:
                 print 'generating ' + outfilename 
-                plottarget(m,oma_bc,obsxpt,obsypt,titlestr,vmin,vmax,targetvars[i], \
+                rp.plottarget(m,oma_bc,obsxpt,obsypt,titlestr,vmin,vmax,targetvars[i], \
                     targetamps[i],targetlon,targetlat,outfilename)
 
 #            tableline = tableline +  '"></td></tr>\n'
@@ -381,8 +293,8 @@ for ichan in channels:
 
        	    titlestr = 'Tb ges ' + date + ' ' + instrument + ' Ch ' + str(ichan) + ' ' + val + ' ' + str(targetamps[i])
 
-            outfilename=date+'/'+instrument+'_ges_obs_Ch%02d' % ichan + '_' + date + '_' + \
-                        val + '_' + str(targetlat) + '_' + str(targetlon) + '.jpg'
+            outfilename=targetstr+'/'+instrument+'_ges_obs_Ch%02d' % ichan + '_' + date + '_' + \
+                        val + '_' + str(targetlat) + '_' + str(targetlon) + imgtype
 
             vmin=min(obsges)
 	    vmax=max(obsges)
@@ -390,60 +302,60 @@ for ichan in channels:
             gesobstargetimages[i].append(outfilename)
             if makeplots:
                 print 'generating ' + outfilename 
-                plottarget(m,obsges,obsxpt,obsypt,titlestr,vmin,vmax,targetvars[i], \
+                rp.plottarget(m,obsges,obsxpt,obsypt,titlestr,vmin,vmax,targetvars[i], \
                         targetamps[i],targetlon,targetlat,outfilename)
 
 
             titlestr = 'O-B (w/ bc) ' + date + ' ' + instrument + ' Ch ' + str(ichan) + ' ' + val + ' ' + str(targetamps[i])
 
-            outfilenamebase=date+'/'+instrument+ '_ges_OmB_Ch%02d' % ichan + '_' + date + \
+            outfilenamebase=targetstr+'/'+instrument+ '_ges_OmB_Ch%02d' % ichan + '_' + date + \
                             '_' + val + '_' + str(targetlat) + '_' + str(targetlon) 
 
 
 	    vmin=-1.0
 	    vmax=1.0
-	    outfilename = outfilenamebase + '_fix.jpg'
+	    outfilename = outfilenamebase + '_fix' + imgtype
             ombtargetimagesfix[i].append(outfilename)
             if makeplots:
                 print 'generating ' + outfilename 
-                plottarget(m,omb_bc,obsxpt,obsypt,titlestr,vmin,vmax,targetvars[i], \
+                rp.plottarget(m,omb_bc,obsxpt,obsypt,titlestr,vmin,vmax,targetvars[i], \
                     targetamps[i],targetlon,targetlat,outfilename)
 
 
             vmin=min(omb_bc)
 	    vmax=max(omb_bc)
-	    outfilename = outfilenamebase + '_rel.jpg'
+	    outfilename = outfilenamebase + '_rel' + imgtype
             ombtargetimagesrel[i].append(outfilename)
             if makeplots:
                 print 'generating ' + outfilename 
-                plottarget(m,omb_bc,obsxpt,obsypt,titlestr,vmin,vmax,targetvars[i], \
+                rp.plottarget(m,omb_bc,obsxpt,obsypt,titlestr,vmin,vmax,targetvars[i], \
                     targetamps[i],targetlon,targetlat,outfilename)
 
                 
             amb_bc = omb_bc - oma_bc               
             titlestr = 'A-B (w/ bc) ' + date + ' ' + instrument + ' Ch ' + str(ichan) + ' ' + val + ' ' + str(targetamps[i])
 
-            outfilenamebase=date+'/'+instrument+ '_ges_AmB_Ch%02d' % ichan + '_' + date + \
+            outfilenamebase=targetstr+'/'+instrument+ '_ges_AmB_Ch%02d' % ichan + '_' + date + \
                             '_' + val + '_' + str(targetlat) + '_' + str(targetlon) 
 
 	    vmin=-1.0
 	    vmax=1.0
-	    outfilename = outfilenamebase + '_fix.jpg'
+	    outfilename = outfilenamebase + '_fix' + imgtype
             ambtargetimagesfix[i].append(outfilename)
             if makeplots:
                 print 'generating ' + outfilename 
-                plottarget(m,amb_bc,obsxpt,obsypt,titlestr,vmin,vmax,targetvars[i], \
+                rp.plottarget(m,amb_bc,obsxpt,obsypt,titlestr,vmin,vmax,targetvars[i], \
                     targetamps[i],targetlon,targetlat,outfilename)
 
 
 
             vmin=min(amb_bc)
 	    vmax=max(amb_bc)
-	    outfilename = outfilenamebase + '_rel.jpg'
+	    outfilename = outfilenamebase + '_rel' + imgtype
             ambtargetimagesrel[i].append(outfilename)
             if makeplots:
                 print 'generating ' + outfilename 
-                plottarget(m,amb_bc,obsxpt,obsypt,titlestr,vmin,vmax,targetvars[i], \
+                rp.plottarget(m,amb_bc,obsxpt,obsypt,titlestr,vmin,vmax,targetvars[i], \
                     targetamps[i],targetlon,targetlat,outfilename)
 
 
@@ -504,6 +416,38 @@ for i,val in enumerate(targetvars):
             f.write('</table></body></html>\n')
 
 
+
+
+
+originx=111 # 90N,180W
+originy=60
+farx=707 # 90S,180E
+fary=496
+xrange=farx-originx
+yrange=fary-originy
+
+
+#targetxpt,targetypt=m(targetlons,targetlats)
+#maxxpt,maxypt=m(180,90)
+
+with open('htmlmapareas',"w") as f:
+
+    for i,val in enumerate(targetvars):
+
+#        targetlat=90-targetlats[i] # convert 90:-90 to 0:180
+#	targetlon=targetlons[i]+180 # convert -180:180 to 1:360
+
+
+
+        ycoord=str(int(((maxypt-targetypt[i])/maxypt)*yrange)+originy)
+        xcoord=str(int((targetxpt[i]/maxxpt)*xrange)+originx)
+
+        latlonstr=str(targetlats[i]) + ',' + str(targetlons[i])
+
+        pre='  <area shape="circle" coords="'
+	f.write( pre + xcoord + ',' + ycoord + ',5" href="' + latlonstr + '.htm" alt="Venus">\n' )
+
+
 pagelistfilename=instrument + '_OmB_and_OmA_' + date + '_fix.html'
 with open(pagelistfilename, "w") as f:
     print 'writing ' + pagelistfilename
@@ -525,6 +469,64 @@ with open(pagelistfilename, "w") as f:
         f.write('<li><a href="' + pagelistrel[i] + '">' +  pagelistrel[i] + '</a>\n')
 
     f.write('</u></body></html>\n')
+
+
+
+
+#wb.makegepointmap(m,targetlats,targetlons,targetypt,targetxpt,listoftargets)
+
+pagelistfilename=instrument + '_OmB_and_OmA_' + date + '_all.html'
+#mapimage=date + '/' + instrument + '/' + instrument+'_ana_obs_Ch01_' + date + imgtype
+mapimage= instrument+'_ana_obs_Ch01_' + date + imgtype
+
+# the following are the pixels for the origin and kiddie corners of
+# the global plots generated, determined empircally since the 
+# transforms in matplotlib seem to be buggy.  An 800x600 jpg or 
+# png image is assumed.
+originx=111 # 90N,180W
+originy=60
+farx=707 # 90S,180E
+fary=496
+xrange=farx-originx
+yrange=fary-originy
+clicksize=5 # size of clickable area
+
+
+with open(pagelistfilename, "w") as f:
+    print 'writing ' + pagelistfilename
+    header ='<html><head><title>Sample CGI Script</title></head><body>\n'
+    f.write(header)
+    imgmapline='<img src="' + mapimage + '" width="800" height="600" alt="Planets" usemap="#' + date + 'map">\n'
+    f.write(imgmapline)
+    f.write('<map name="' + date + 'map">\n')
+    for i,val in enumerate(targetlats):
+
+        ycoord=str(int(((maxypt-targetypt[i])/maxypt)*yrange)+originy)
+        xcoord=str(int((targetxpt[i]/maxxpt)*xrange)+originx)
+
+        latlonstr=str(targetlats[i]) + ',' + str(targetlons[i])
+#        pagename=listoftargets[i]
+        pagename=pagelistrel[i]
+
+        pre='  <area shape="circle" coords="'
+        f.write( pre + xcoord + ',' + ycoord + ',' + str(clicksize) )
+        f.write( '" href="' + pagename + '" alt="Venus">\n' )
+
+
+
+    f.write('</map>\n')
+    f.write('<ul>\n')
+    for i in range(len(pagelistrel)):
+#        f.write('<li><a href="' + date + '/' + instrument + '/' + pagelistrel[i] + '">' +  pagelistrel[i] + '</a>\n')
+        f.write('<li><a href="'  + pagelistrel[i] + '">' +  pagelistrel[i] + '</a>\n')
+    f.write('</ul><ul>\n')
+    for i in range(len(pagelistfix)):
+#        f.write('<li><a href="' + date + '/' + instrument + '/' + pagelistfix[i] + '">' +  pagelistfix[i] + '</a>\n')
+        f.write('<li><a href="'  + pagelistfix[i] + '">' +  pagelistfix[i] + '</a>\n')
+
+
+    f.write('</ul></body></html>\n')
+
 
 
 
