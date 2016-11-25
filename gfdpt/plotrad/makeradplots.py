@@ -26,7 +26,7 @@ diagfiledir='/data/users/aeichmann/COATsvn/radstat/'
 instrument='amsua_n18'
 
 makeplots=True
-makeplots=False
+#makeplots=False
 
 # png for lossless
 imgtype='.png'
@@ -141,7 +141,7 @@ gesobsglobalimages=[]
 
 
 # for testing
-#channels=[1,2,3]
+channels=[1,2,3]
 
 for ichan in channels:
 
@@ -250,18 +250,18 @@ for ichan in channels:
     	rp.plotglobal(m,amb_bc,obsxpt,obsypt,titlestr,vmin,vmax,targetvars,targetamps,targetxpt,targetypt,outfilename)
 
 
-
+# now do the same zoomed in on each of the gribextremes points
     for i,val in enumerate(targetvars):
 #    for i,val in []:
 
-   		
         targetlat=targetlats[i]
         targetlon=targetlons[i]
         targetstr=targetstrs[i]
 
 
         if not os.path.isdir(targetstr): os.mkdir(targetstr)
-        
+       
+       # use different projections for near the poles
         if targetlat < -80:
             mtgt = Basemap(projection='splaea',boundinglat=-70,lon_0=90,resolution='l')
         else:
@@ -269,11 +269,13 @@ for ichan in channels:
                                                 resolution='c',\
                                                 lon_0=targetlon,lat_0=targetlat)
 
-        obsxpt,obsypt=m(obslons,obslats)
+        # get obs coords in local projection
+        obsxpt,obsypt=mtgt(obslons,obslats)
         obsanl = diagradanl.obs[idxges]
 
         if (obsanl.size > 0) :
 
+            # plot anl obs
             outfilename=targetstr+'/'+instrument+'_ana_obs_Ch%02d' % ichan + '_' + date + '_' + \
                        val + '_' + str(targetlat) + '_' + str(targetlon) + imgtype
             listoftargets.append(outfilename)
@@ -286,11 +288,10 @@ for ichan in channels:
                 rp.plottarget(mtgt,obsanl,obsxpt,obsypt,titlestr,vmin,vmax,targetvars[i], \
                         targetamps[i],targetlon,targetlat,outfilename)
 
+            # plot O-A
             titlestr = 'O-A (w/ bc) ' + date + ' ' + instrument + ' Ch ' + str(ichan) + ' ' + val + ' ' + str(targetamps[i])
-
             outfilenamebase=targetstr+'/'+instrument+'_ana_OmA_Ch%02d' % ichan + '_' + date + '_' + \
                          val + '_' + str(targetlat) + '_' + str(targetlon) 
-
 	    vmin=-1.0
 	    vmax=1.0
 	    outfilename = outfilenamebase + '_fix' + imgtype
@@ -314,6 +315,7 @@ for ichan in channels:
 
         if (obsges.size > 0) :
 
+            # plot ges obs
        	    titlestr = 'Tb ges ' + date + ' ' + instrument + ' Ch ' + str(ichan) + ' ' + val + ' ' + str(targetamps[i])
 
             outfilename=targetstr+'/'+instrument+'_ges_obs_Ch%02d' % ichan + '_' + date + '_' + \
@@ -329,6 +331,7 @@ for ichan in channels:
                         targetamps[i],targetlon,targetlat,outfilename)
 
 
+            # plot O-A
             titlestr = 'O-B (w/ bc) ' + date + ' ' + instrument + ' Ch ' + str(ichan) + ' ' + val + ' ' + str(targetamps[i])
 
             outfilenamebase=targetstr+'/'+instrument+ '_ges_OmB_Ch%02d' % ichan + '_' + date + \
@@ -354,7 +357,7 @@ for ichan in channels:
                 rp.plottarget(mtgt,omb_bc,obsxpt,obsypt,titlestr,vmin,vmax,targetvars[i], \
                     targetamps[i],targetlon,targetlat,outfilename)
 
-                
+            # plot A-B = (O-B)-(O-A) = O - B - O + A      
             amb_bc = omb_bc - oma_bc               
             titlestr = 'A-B (w/ bc) ' + date + ' ' + instrument + ' Ch ' + str(ichan) + ' ' + val + ' ' + str(targetamps[i])
 
@@ -382,7 +385,7 @@ for ichan in channels:
                     targetamps[i],targetlon,targetlat,outfilename)
 
 
-
+# create html pages point to zoomed images
 pagelistfix=[]
 pagelistrel=[]
 
@@ -402,9 +405,7 @@ for i,val in enumerate(targetvars):
             header ='<html><head><title>title goes here</title></head><body>\n'
             f.write(header)
             f.write('<table border="1">\n')
-#        for ichan in channels:
             for j in  range(len(omatargetimagesfix[i])):
-#            for ichan in [0]:
                 if omatargetimagesfix[i][j] :
                     f.write('<tr><td><img src="')
                     f.write(omatargetimagesfix[i][j])   
@@ -439,37 +440,6 @@ for i,val in enumerate(targetvars):
             f.write('</table></body></html>\n')
 
 
-
-
-
-originx=111 # 90N,180W
-originy=60
-farx=707 # 90S,180E
-fary=496
-xrange=farx-originx
-yrange=fary-originy
-
-
-#targetxpt,targetypt=m(targetlons,targetlats)
-#maxxpt,maxypt=m(180,90)
-
-with open('htmlmapareas',"w") as f:
-
-    for i,val in enumerate(targetvars):
-
-#        targetlat=90-targetlats[i] # convert 90:-90 to 0:180
-#	targetlon=targetlons[i]+180 # convert -180:180 to 1:360
-
-
-
-        ycoord=str(int(((maxypt-targetypt[i])/maxypt)*yrange)+originy)
-        xcoord=str(int((targetxpt[i]/maxxpt)*xrange)+originx)
-
-        latlonstr=str(targetlats[i]) + ',' + str(targetlons[i])
-
-        pre='  <area shape="circle" coords="'
-#	f.write( pre + xcoord + ',' + ycoord + ',5" href="' + latlonstr + '.htm" alt="Venus">\n' )
-	f.write( pre + xcoord + ',' + ycoord + ',5" href="' + latlonstr + '.htm" >\n' )
 
 
 pagelistfilename=instrument + '_OmB_and_OmA_' + date + '_fix.html'
@@ -552,13 +522,14 @@ with open(pagelistfilename, "w") as f:
     f.write('</ul></body></html>\n')
 
 
+
+
+# create html file showing O-A, O-B, anl obs, and A-B for each date and instrument
 pagelistfilename=instrument + '_' + date + '.html'
-#mapimage=date + '/' + instrument + '/' + instrument+'_ana_obs_Ch01_' + date + imgtype
-mapimage= instrument+'_ana_obs_Ch01_' + date + imgtype
 
 with open(pagelistfilename, "w") as f:
     print 'writing ' + pagelistfilename
-    header ='<html><head><title>Sample CGI Script</title></head><body>\n'
+    header ='<html><head><title>radiance data for ' + date + ' ' + instrument + '</title></head><body>\n'
     f.write(header)
 
     for i in  range(len(omaglobalimages)):
@@ -576,13 +547,6 @@ with open(pagelistfilename, "w") as f:
         f.write('</table></body></html>\n')
         f.write('<hr>\n')
 
-
-
-
-#    imgmapline='<img src="' + mapimage + '" width="800" height="600" alt="Planets" usemap="#' + date + instrument + '">\n'
-#    f.write(imgmapline)
-
-
     f.write('<map name="' + date + instrument + '">\n')
 
     for i,val in enumerate(targetlats):
@@ -591,26 +555,19 @@ with open(pagelistfilename, "w") as f:
         xcoord=str(int((targetxpt[i]/maxxpt)*xrange)+originx)
 
         latlonstr=str(targetlats[i]) + ',' + str(targetlons[i])
-#        pagename=listoftargets[i]
         pagename=pagelistrel[i]
 
         pre='  <area shape="circle" coords="'
         f.write( pre + xcoord + ',' + ycoord + ',' + str(clicksize) )
-#        f.write( '" href="' + pagename + '" alt="Venus">\n' )
         f.write( '" href="' + pagename + '" >\n' )
-
-
 
     f.write('</map>\n')
     f.write('<ul>\n')
     for i in range(len(pagelistrel)):
-#        f.write('<li><a href="' + date + '/' + instrument + '/' + pagelistrel[i] + '">' +  pagelistrel[i] + '</a>\n')
         f.write('<li><a href="'  + pagelistrel[i] + '">' +  pagelistrel[i] + '</a>\n')
     f.write('</ul><ul>\n')
     for i in range(len(pagelistfix)):
-#        f.write('<li><a href="' + date + '/' + instrument + '/' + pagelistfix[i] + '">' +  pagelistfix[i] + '</a>\n')
         f.write('<li><a href="'  + pagelistfix[i] + '">' +  pagelistfix[i] + '</a>\n')
-
 
     f.write('</ul></body></html>\n')
 
