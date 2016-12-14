@@ -23,6 +23,7 @@ diagfiledir='/data/users/aeichmann/COATsvn/radstat/'
 
 #instrument='atms_npp'
 #instrument='amsua_n19'
+#instrument='amsua_n18'
 instrument='amsua_n18'
 
 makeplots=True
@@ -89,6 +90,7 @@ diaggesfile = diagfiledir + 'diag_'+instrument+'_ges.'+date
 diagradges = read_diag.diag_rad(diaggesfile,endian='big')
 
 
+sys.exit()
 print 'total number anl obs = ',diagradanl.nobs
 diagradanl.read_obs()
 # print o-f stats for one channel
@@ -141,7 +143,7 @@ gesobsglobalimages=[]
 
 
 # for testing
-channels=[1,2,3]
+#channels=[1,2,3]
 
 for ichan in channels:
 
@@ -172,19 +174,21 @@ for ichan in channels:
 
     fitsq = ((diagradanl.hx[idxanl]-diagradanl.obs[idxanl])**2).mean()
 
-    print diagradanl.obs[6],diagradanl.hx[6],diagradanl.biascorr[6],diagradanl.biaspred[1:,6].sum()
+#    print diagradanl.obs[6],diagradanl.hx[6],diagradanl.biascorr[6],diagradanl.biaspred[1:,6].sum()
     print nobsanl,'anl: obs used for channel',ichan,'out of',nobsallanl,'rms o-f', np.sqrt(fitsq)
 
-    print diagradges.obs[6],diagradges.hx[6],diagradges.biascorr[6],diagradges.biaspred[1:,6].sum()
+#    print diagradges.obs[6],diagradges.hx[6],diagradges.biascorr[6],diagradges.biaspred[1:,6].sum()
     print nobsges,'ges: obs used for channel',ichan,'out of',nobsallges,'rms o-f', np.sqrt(fitsq)
 
     obslats=diagradanl.lat[idxanl]
     obslons=diagradanl.lon[idxanl]
 
+    print diagradanl.qcmark[idxallanl]
+    sys.exit()
+
     # these should be same
     if any(obslats != diagradges.lat[idxges]) or any(obslons != diagradges.lon[idxges]):
         print 'skronk'
-        sys.exit()
 
     for i,val in enumerate(obslons):
         if val > 180.0  : obslons[i] = val - 360.0
@@ -195,59 +199,85 @@ for ichan in channels:
 
     # analysis obs
     field=diagradanl.obs[idxanl]
+    anlobsstd=np.std(field)
     titlestr = 'Tb ana ' + date + ' ' + instrument + ' Ch ' + str(ichan)
     outfilename=instrument+'_ana_obs_Ch%02d' % ichan + '_' + date + imgtype
     anlobsglobalimages.append(outfilename)
-    vmin=min(field)
-    vmax=max(field)
+#    vmin=min(field)
+#    vmax=max(field)
+    vmin=np.mean(field)-anlobsstd*3
+    vmax=np.mean(field)+anlobsstd*3
     if makeplots:
     	print 'generating ' + outfilename 
 	rp.plotglobal(m,field,obsxpt,obsypt,titlestr,vmin,vmax,targetvars,targetamps,targetxpt,targetypt,outfilename)
 
     # guess obs
     field=diagradges.obs[idxges]
+    gesobsstd=np.std(field)
     titlestr = 'Tb ges ' + date + ' ' + instrument + ' Ch ' + str(ichan)
     outfilename=instrument+'_ges_obs_Ch%02d' % ichan + '_' + date + imgtype
     gesobsglobalimages.append(outfilename)
-    vmin=min(field)
-    vmax=max(field)
+#    vmin=min(field)
+#    vmax=max(field)
+    vmin=np.mean(field)-gesobsstd*3
+    vmax=np.mean(field)+gesobsstd*3
     if makeplots:
     	print 'generating ' + outfilename 
 	rp.plotglobal(m,field,obsxpt,obsypt,titlestr,vmin,vmax,targetvars,targetamps,targetxpt,targetypt,outfilename)
 
     # O-A
     oma_bc = diagradanl.obs[idxanl] - diagradanl.hx[idxanl]
+    omastd=np.std(oma_bc)
+#    vminoma=np.mean(oma_bc)-omastd
+#    vmaxoma=np.mean(oma_bc)+omastd
+    vminoma=-omastd*3
+    vmaxoma=omastd*3
     titlestr = 'O-A (w/ bc) ' + date + ' ' + instrument + ' Ch ' + str(ichan)
     outfilename=instrument+'_ana_OmA_Ch%02d' % ichan + '_' + date + imgtype
     omaglobalimages.append(outfilename)
 
-    vmin=min(oma_bc)
-    vmax=max(oma_bc)
+#    vmin=min(oma_bc)
+#    vmax=max(oma_bc)
     if makeplots:
     	print 'generating ' + outfilename 
-    	rp.plotglobal(m,oma_bc,obsxpt,obsypt,titlestr,vmin,vmax,targetvars,targetamps,targetxpt,targetypt,outfilename)
+    	rp.plotglobal(m,oma_bc,obsxpt,obsypt,titlestr,vminoma,vmaxoma,targetvars,targetamps,targetxpt,targetypt,outfilename)
 
     # O-B
     omb_bc = diagradges.obs[idxanl] - diagradges.hx[idxanl]
+    ombstd=np.std(omb_bc)
+#    print 'ombstd: ',ombstd
+#    plt.hist(omb_bc)
+#    plt.show()
+#    vminomb=np.mean(omb_bc)-ombstd
+#    vmaxomb=np.mean(omb_bc)+ombstd
+    vminomb=-ombstd*3
+    vmaxomb=+ombstd*3
+#    print 'vmin: ', vmin
+#    print 'vmax: ',vmax
     titlestr = 'O-B (w/ bc) ' + date + ' ' + instrument + ' Ch ' + str(ichan)
     outfilename=instrument+ '_ges_OmB_Ch%02d' % ichan + '_' + date + imgtype
     ombglobalimages.append(outfilename)
-    vmin=min(omb_bc)
-    vmax=max(omb_bc)
+#    vmin=min(omb_bc)
+#    vmax=max(omb_bc)
     if makeplots:
     	print 'generating ' + outfilename 
-    	rp.plotglobal(m,omb_bc,obsxpt,obsypt,titlestr,vmin,vmax,targetvars,targetamps,targetxpt,targetypt,outfilename)
+    	rp.plotglobal(m,omb_bc,obsxpt,obsypt,titlestr,vminomb,vmaxomb,targetvars,targetamps,targetxpt,targetypt,outfilename)
 
     # A-B
     amb_bc = omb_bc - oma_bc # A-B = (O-B)-(O-A) = O - B - O + A
+    ambstd=np.std(amb_bc)
+#    vminamb=np.mean(amb_bc)-ambstd
+#    vmaxamb=np.mean(amb_bc)+ambstd
+    vminamb=-ambstd*3
+    vmaxamb=+ambstd*3
     titlestr = 'A-B (w/ bc) ' + date + ' ' + instrument + ' Ch ' + str(ichan)
     outfilename=instrument+ '_AmB_Ch%02d' % ichan + '_' + date + imgtype
     ambglobalimages.append(outfilename)
-    vmin=min(amb_bc)
-    vmax=max(amb_bc)
+#    vmin=min(amb_bc)
+#    vmax=max(amb_bc)
     if makeplots:
     	print 'generating ' + outfilename 
-    	rp.plotglobal(m,amb_bc,obsxpt,obsypt,titlestr,vmin,vmax,targetvars,targetamps,targetxpt,targetypt,outfilename)
+    	rp.plotglobal(m,amb_bc,obsxpt,obsypt,titlestr,vminamb,vmaxamb,targetvars,targetamps,targetxpt,targetypt,outfilename)
 
 
 # now do the same zoomed in on each of the gribextremes points
@@ -294,6 +324,8 @@ for ichan in channels:
                          val + '_' + str(targetlat) + '_' + str(targetlon) 
 	    vmin=-1.0
 	    vmax=1.0
+	    vmin=vminoma
+	    vmax=vmaxoma
 	    outfilename = outfilenamebase + '_fix' + imgtype
             omatargetimagesfix[i].append(outfilename)
             if makeplots:
@@ -303,6 +335,8 @@ for ichan in channels:
 
             vmin=min(oma_bc)
 	    vmax=max(oma_bc)
+	    vmin=vminoma
+	    vmax=vmaxoma
 	    outfilename = outfilenamebase + '_rel' + imgtype
             omatargetimagesrel[i].append(outfilename)
             if makeplots:
@@ -331,7 +365,7 @@ for ichan in channels:
                         targetamps[i],targetlon,targetlat,outfilename)
 
 
-            # plot O-A
+            # plot O-B
             titlestr = 'O-B (w/ bc) ' + date + ' ' + instrument + ' Ch ' + str(ichan) + ' ' + val + ' ' + str(targetamps[i])
 
             outfilenamebase=targetstr+'/'+instrument+ '_ges_OmB_Ch%02d' % ichan + '_' + date + \
@@ -340,6 +374,8 @@ for ichan in channels:
 
 	    vmin=-1.0
 	    vmax=1.0
+	    vmin=vminomb
+	    vmax=vmaxomb
 	    outfilename = outfilenamebase + '_fix' + imgtype
             ombtargetimagesfix[i].append(outfilename)
             if makeplots:
@@ -350,6 +386,8 @@ for ichan in channels:
 
             vmin=min(omb_bc)
 	    vmax=max(omb_bc)
+	    vmin=vminomb
+	    vmax=vmaxomb
 	    outfilename = outfilenamebase + '_rel' + imgtype
             ombtargetimagesrel[i].append(outfilename)
             if makeplots:
@@ -366,6 +404,8 @@ for ichan in channels:
 
 	    vmin=-1.0
 	    vmax=1.0
+	    vmin=vminamb
+	    vmax=vmaxamb
 	    outfilename = outfilenamebase + '_fix' + imgtype
             ambtargetimagesfix[i].append(outfilename)
             if makeplots:
@@ -377,6 +417,8 @@ for ichan in channels:
 
             vmin=min(amb_bc)
 	    vmax=max(amb_bc)
+	    vmin=vminamb
+	    vmax=vmaxamb
 	    outfilename = outfilenamebase + '_rel' + imgtype
             ambtargetimagesrel[i].append(outfilename)
             if makeplots:

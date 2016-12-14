@@ -13,19 +13,13 @@ def plotglobal(m,obs,obsxpt,obsypt,titlestr,vmin,vmax,targetvars,targetamps,targ
     m.drawmeridians(np.arange(-180.,181.,60.),labels=[True,True,True])
     m.drawparallels(np.arange(-90.,91.,30.),labels=[True,True,True]) 
 
-    print vmin,vmax
+    print 'vmin, vmax: ' , vmin,vmax
     cNorm  = colors.Normalize(vmin=vmin, vmax=vmax)
     scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=rnbw)
     scalarMap.set_array(obs)
 
     colorVal = scalarMap.to_rgba(obs)
 
-#    foo=m.scatter(obsxpt,obsypt,c=obs,cmap=cm,marker='.',s=50,edgecolors='black',linewidth=0.15) 
-#    foo=m.scatter(obsxpt,obsypt,c=obs,cmap=cm,marker='.',s=40,edgecolors='black',linewidth=0.15) 
-#    foo=m.scatter(obsxpt,obsypt,c=obs,cmap=cm,marker='.',s=30,edgecolors='black',linewidth=0.15) 
-#    foo=m.scatter(obsxpt,obsypt,c=obs,cmap=cm,marker='.',s=20,edgecolors='black',linewidth=0.15) 
-#    foo=m.scatter(obsxpt,obsypt,c=obs,cmap=cm,marker='.',s=10,edgecolors='black',linewidth=0.15) 
-#    foo=m.scatter(obsxpt,obsypt,c=obs,cmap=cm,marker='.',s=15,edgecolors='black',linewidth=0.15) 
     foo=m.scatter(obsxpt,obsypt,c=colorVal,marker='.',s=15,edgecolors='black',linewidth=0.15) 
     m.scatter(targetxpt,targetypt,marker='+',s=50,c='red',linewidth=1.5) 
 
