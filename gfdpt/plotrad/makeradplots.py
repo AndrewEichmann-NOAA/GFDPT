@@ -12,19 +12,18 @@ import radplot as rp
 
 date='2015092100'
 date='2015092200'
-date='2015092600'
-date='2015101700'
-date='2015101800'
-date='2015121000'
-date='2016071100'
+#date='2015092600'
+#date='2015101700'
+#date='2015101800'
+#date='2015121000'
+#date='2016071100'
 
 
 diagfiledir='/data/users/aeichmann/COATsvn/radstat/'
 
-#instrument='atms_npp'
+instrument='atms_npp'
 #instrument='amsua_n19'
 #instrument='amsua_n18'
-instrument='amsua_n18'
 
 makeplots=True
 #makeplots=False
@@ -32,7 +31,29 @@ makeplots=True
 # png for lossless
 imgtype='.png'
 
-
+# set up dictionary of atms/amsua channel heights
+channelheights= { 1 : '(wnd-H2O vpr)',
+		  2 : '(wnd-H2O vpr)',
+		  3 : '(wnd-srfc)',
+		  4 : '(wnd-srfc)',
+		  5 : '(srfc air)',
+		  6 : '(700mb)',
+		  7 : '(400mb)',
+		  8 : '(250mb)',
+		  9 : '(180mb)',
+		 10 : '(90mb)',
+		 11 : '(50mb)',
+		 12 : '(25mb)',
+		 13 : '(10mb)',
+		 14 : '(6mb)',
+		 15 : '(3mb)',
+		 16 : '(wnd H20)',
+		 17 : '(H20 18mm)',
+		 18 : '(H20 18mm)',
+		 19 : '(H20 4.5mm)',
+		 20 : '(H20 2.5mm)',
+		 21 : '(H20 1.2mm)',
+		 22 : '(H20 0.5mm)' }
 
 if len(sys.argv) > 1:
     date = sys.argv[1]
@@ -90,7 +111,7 @@ diaggesfile = diagfiledir + 'diag_'+instrument+'_ges.'+date
 diagradges = read_diag.diag_rad(diaggesfile,endian='big')
 
 
-sys.exit()
+#sys.exit()
 print 'total number anl obs = ',diagradanl.nobs
 diagradanl.read_obs()
 # print o-f stats for one channel
@@ -133,17 +154,19 @@ ombtargetimagesrel=[[] for x in xrange(numgepoints)]
 ambtargetimagesrel=[[] for x in xrange(numgepoints)]
 anlobstargetimages=[[] for x in xrange(numgepoints)]
 gesobstargetimages=[[] for x in xrange(numgepoints)]
+qctargetimages=[[] for x in xrange(numgepoints)]
 
 omaglobalimages=[]
 ombglobalimages=[]
 ambglobalimages=[]
 anlobsglobalimages=[]
 gesobsglobalimages=[]
+qcglobalimages=[]
 
 
 
 # for testing
-#channels=[1,2,3]
+#channels=[6]
 
 for ichan in channels:
 
@@ -183,12 +206,26 @@ for ichan in channels:
     obslats=diagradanl.lat[idxanl]
     obslons=diagradanl.lon[idxanl]
 
-    print diagradanl.qcmark[idxallanl]
-    sys.exit()
+#    print diagradanl.qcmark[idxallanl]
+#    sys.exit()
 
     # these should be same
     if any(obslats != diagradges.lat[idxges]) or any(obslons != diagradges.lon[idxges]):
         print 'skronk'
+
+    if instrument == 'atms_npp':
+        channelheight=channelheights[ichan]
+    elif instrument[0:3] == 'amsu':
+	if ichan < 4:
+           channelheight=channelheights[ichan]
+	else:
+           channelheight=channelheights[ichan+1]
+    else: channelheight=''	   
+           		
+	   
+
+
+
 
     for i,val in enumerate(obslons):
         if val > 180.0  : obslons[i] = val - 360.0
@@ -232,7 +269,7 @@ for ichan in channels:
 #    vmaxoma=np.mean(oma_bc)+omastd
     vminoma=-omastd*3
     vmaxoma=omastd*3
-    titlestr = 'O-A (w/ bc) ' + date + ' ' + instrument + ' Ch ' + str(ichan)
+    titlestr = 'O-A (w/ bc) ' + date + ' ' + instrument + ' Ch ' + str(ichan) + ' ' + channelheight
     outfilename=instrument+'_ana_OmA_Ch%02d' % ichan + '_' + date + imgtype
     omaglobalimages.append(outfilename)
 
@@ -254,7 +291,7 @@ for ichan in channels:
     vmaxomb=+ombstd*3
 #    print 'vmin: ', vmin
 #    print 'vmax: ',vmax
-    titlestr = 'O-B (w/ bc) ' + date + ' ' + instrument + ' Ch ' + str(ichan)
+    titlestr = 'O-B (w/ bc) ' + date + ' ' + instrument + ' Ch ' + str(ichan) + ' ' + channelheight
     outfilename=instrument+ '_ges_OmB_Ch%02d' % ichan + '_' + date + imgtype
     ombglobalimages.append(outfilename)
 #    vmin=min(omb_bc)
@@ -270,7 +307,7 @@ for ichan in channels:
 #    vmaxamb=np.mean(amb_bc)+ambstd
     vminamb=-ambstd*3
     vmaxamb=+ambstd*3
-    titlestr = 'A-B (w/ bc) ' + date + ' ' + instrument + ' Ch ' + str(ichan)
+    titlestr = 'A-B (w/ bc) ' + date + ' ' + instrument + ' Ch ' + str(ichan) + ' ' + channelheight
     outfilename=instrument+ '_AmB_Ch%02d' % ichan + '_' + date + imgtype
     ambglobalimages.append(outfilename)
 #    vmin=min(amb_bc)
@@ -278,6 +315,20 @@ for ichan in channels:
     if makeplots:
     	print 'generating ' + outfilename 
     	rp.plotglobal(m,amb_bc,obsxpt,obsypt,titlestr,vminamb,vmaxamb,targetvars,targetamps,targetxpt,targetypt,outfilename)
+
+
+    titlestr = 'QC flag ' + date + ' ' + instrument + ' Ch ' + str(ichan) + ' ' + channelheight
+    outfilename=instrument+ '_QC_Ch%02d' % ichan + '_' + date + imgtype
+    qcglobalimages.append(outfilename)
+#    ambglobalimages.append(outfilename)
+#    vmin=min(qcmark)
+#    vmax=max(qcmark)
+    if makeplots:
+    	print 'generating ' + outfilename 
+#    	rp.plotglobal(m,qcmark,obsxptall,obsyptall,titlestr,vmin,vmax,targetvars,targetamps,targetxpt,targetypt,outfilename)
+        rp.plotglobalqc(m,diagradanl,ichan,titlestr,targetvars,targetamps,targetxpt,targetypt,outfilename)
+
+
 
 
 # now do the same zoomed in on each of the gribextremes points
@@ -305,18 +356,20 @@ for ichan in channels:
 
         if (obsanl.size > 0) :
 
-            # plot anl obs
-            outfilename=targetstr+'/'+instrument+'_ana_obs_Ch%02d' % ichan + '_' + date + '_' + \
-                       val + '_' + str(targetlat) + '_' + str(targetlon) + imgtype
-            listoftargets.append(outfilename)
-            vmin=min(obsanl)
-	    vmax=max(obsanl)
 
-            anlobstargetimages[i].append(outfilename)
-            if makeplots:
-                print 'generating ' + outfilename 
-                rp.plottarget(mtgt,obsanl,obsxpt,obsypt,titlestr,vmin,vmax,targetvars[i], \
-                        targetamps[i],targetlon,targetlat,outfilename)
+            if 0:		
+               # plot anl obs
+               outfilename=targetstr+'/'+instrument+'_ana_obs_Ch%02d' % ichan + '_' + date + '_' + \
+                          val + '_' + str(targetlat) + '_' + str(targetlon) + imgtype
+               listoftargets.append(outfilename)
+               vmin=min(obsanl)
+     	       vmax=max(obsanl)
+
+               anlobstargetimages[i].append(outfilename)
+               if makeplots:
+                   print 'generating ' + outfilename 
+                   rp.plottarget(mtgt,obsanl,obsxpt,obsypt,titlestr,vmin,vmax,targetvars[i], \
+                          targetamps[i],targetlon,targetlat,outfilename)
 
             # plot O-A
             titlestr = 'O-A (w/ bc) ' + date + ' ' + instrument + ' Ch ' + str(ichan) + ' ' + val + ' ' + str(targetamps[i])
@@ -349,20 +402,21 @@ for ichan in channels:
 
         if (obsges.size > 0) :
 
-            # plot ges obs
-       	    titlestr = 'Tb ges ' + date + ' ' + instrument + ' Ch ' + str(ichan) + ' ' + val + ' ' + str(targetamps[i])
+            if 0:
+                # plot ges obs
+          	titlestr = 'Tb ges ' + date + ' ' + instrument + ' Ch ' + str(ichan) + ' ' + val + ' ' + str(targetamps[i])
 
-            outfilename=targetstr+'/'+instrument+'_ges_obs_Ch%02d' % ichan + '_' + date + '_' + \
+                outfilename=targetstr+'/'+instrument+'_ges_obs_Ch%02d' % ichan + '_' + date + '_' + \
                         val + '_' + str(targetlat) + '_' + str(targetlon) + imgtype
 
-            vmin=min(obsges)
-	    vmax=max(obsges)
+                vmin=min(obsges)
+	        vmax=max(obsges)
 
-            gesobstargetimages[i].append(outfilename)
-            if makeplots:
-                print 'generating ' + outfilename 
-                rp.plottarget(mtgt,obsges,obsxpt,obsypt,titlestr,vmin,vmax,targetvars[i], \
-                        targetamps[i],targetlon,targetlat,outfilename)
+                gesobstargetimages[i].append(outfilename)
+                if makeplots:
+                    print 'generating ' + outfilename 
+                    rp.plottarget(mtgt,obsges,obsxpt,obsypt,titlestr,vmin,vmax,targetvars[i], \
+                            targetamps[i],targetlon,targetlat,outfilename)
 
 
             # plot O-B
@@ -425,6 +479,17 @@ for ichan in channels:
                 print 'generating ' + outfilename 
                 rp.plottarget(mtgt,amb_bc,obsxpt,obsypt,titlestr,vmin,vmax,targetvars[i], \
                     targetamps[i],targetlon,targetlat,outfilename)
+
+            # plot A-B = (O-B)-(O-A) = O - B - O + A      
+            titlestr = 'QC flag ' + date + ' ' + instrument + ' Ch ' + str(ichan) + ' ' + channelheight+ ' ' + val + ' ' + str(targetamps[i])
+            outfilename=targetstr+'/'+instrument+ '_QC_Ch%02d' % ichan + '_' + date +'_' + val + '_' + str(targetlat) + '_' + str(targetlon) + imgtype
+
+            qctargetimages[i].append(outfilename)
+            if makeplots:
+                print 'generating ' + outfilename 
+                rp.plottargetqc(mtgt,diagradanl,ichan,titlestr,targetvars[i], \
+                    targetamps[i],targetlon,targetlat,outfilename)
+
 
 
 # create html pages point to zoomed images
@@ -582,7 +647,8 @@ with open(pagelistfilename, "w") as f:
         f.write(ombglobalimages[i])   
         f.write('" width="800" height="600" usemap="#' + date + instrument + '"></td></tr>\n')
         f.write('<tr><td><img src="')
-        f.write(anlobsglobalimages[i])   
+#        f.write(anlobsglobalimages[i])   
+        f.write(qcglobalimages[i])   
         f.write('" width="800" height="600" usemap="#' + date + instrument + '"></td><td><img src="')
         f.write(ambglobalimages[i])   
         f.write('" width="800" height="600" usemap="#' + date + instrument + '" ></td></tr>\n')
