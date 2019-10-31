@@ -1,0 +1,3 @@
+./makeimgpages.py
+sh makethumbnails.sh
+sh fcstdiv_web_update.sh

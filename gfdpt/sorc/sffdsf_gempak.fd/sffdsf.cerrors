@@ -1,0 +1,74 @@
+(ld): halt 4
+(ld): setopt strip 
+(ld): setfflag 4
+(ld): savename sffdsf
+(ld): filelist 28 2
+(ld): i /lib/crt0.o
+(ld): i sffdsf.o
+(ld): i sfdchk.o
+(ld): i sfdinp.o
+(ld): i sfdopn.o
+(ld): i sfdrdd.o
+(ld): i sfdsst.o
+(ld): lib /usr/lib/libXm.a
+(ld): lib /usr/lib/libXt.a
+(ld): lib /usr/lib/libX11.a
+(ld): lib /nwprod/gempak/nawips1/os/aix5/lib/libnamsnd.a
+(ld): lib /nwprod/gempak/nawips1/os/aix5/lib/libprmcnvlib.a
+(ld): lib /nwprod/gempak/nawips1/os/aix5/lib/libjwblib.a
+(ld): lib /nwprod/gempak/nawips1/os/aix5/lib/libsflib.a
+(ld): lib /nwprod/gempak/nawips1/os/aix5/lib/libsnlib.a
+(ld): lib /nwprod/gempak/nawips1/os/aix5/lib/libgemlib.a
+(ld): lib /nwprod/gempak/nawips1/os/aix5/lib/libappl.a
+(ld): lib /nwprod/gempak/nawips1/os/aix5/lib/libsyslib.a
+(ld): lib /nwprod/gempak/nawips1/os/aix5/lib/libcgemlib.a
+(ld): lib /nwprod/gempak/nawips1/os/aix5/lib/libncepBUFR.a
+(ld): lib /usr/lib/libg.a
+(ld): lib /usr/lib/libxlf90.a
+(ld): lib /usr/lpp/xlf/lib/libxlopt.a
+(ld): lib /usr/lib/libxlf.a
+(ld): lib /usr/lib/libxlomp_ser.a
+(ld): lib /usr/lib/libpthreads.a
+(ld): lib /usr/lib/libm.a
+(ld): lib /usr/lib/libc.a
+LIBRARY: Shared object libXm.a[shr_32.o]: 2779 symbols imported.
+LIBRARY: Shared object libXt.a[shr4.o]: 488 symbols imported.
+LIBRARY: Shared object libX11.a[shr4.o]: 1210 symbols imported.
+LIBRARY: Shared object libX11.a[shr4net.o]: 1 symbols imported.
+LIBRARY: Shared object libxlf90.a[io.o]: 95 symbols imported.
+LIBRARY: Shared object libxlf90.a[math.o]: 352 symbols imported.
+LIBRARY: Shared object libxlf90.a[xlfsys.o]: 34 symbols imported.
+LIBRARY: Shared object libxlf90.a[_xlf_posix_xpg5.o]: 88 symbols imported.
+LIBRARY: Symbols imported from import file /usr/lib/libxlf90.a[_xlf_aio.imp]: 10
+LIBRARY: Shared object libxlf.a[shr.o]: 135 symbols imported.
+LIBRARY: Shared object libxlomp_ser.a[omp_ser.o]: 84 symbols imported.
+LIBRARY: Shared object libpthreads.a[shr_comm.o]: 178 symbols imported.
+LIBRARY: Shared object libpthreads.a[shr_xpg5.o]: 162 symbols imported.
+LIBRARY: Shared object libc.a[shr.o]: 2890 symbols imported.
+LIBRARY: Shared object libc.a[meth.o]: 2 symbols imported.
+LIBRARY: Shared object libc.a[posix_aio.o]: 20 symbols imported.
+LIBRARY: Shared object libc.a[aio.o]: 18 symbols imported.
+LIBRARY: Shared object libc.a[pse.o]: 4 symbols imported.
+LIBRARY: Shared object libc.a[dl.o]: 4 symbols imported.
+LIBRARY: Shared object libc.a[pty.o]: 1 symbols imported.
+FILELIST: Number of previously inserted files processed: 28
+(ld): exports /usr/lib/libg.exp 
+EXPORTS: Symbols exported: 4
+(ld): resolve
+RESOLVE: 1000 of 26679 symbols were kept.
+(ld): addgl /usr/lib/glink.o
+ADDGL: Glink code added for 42 symbols.
+(ld): er full
+ER: There are no unresolved symbols.
+(ld): mismatch
+MISMATCH: No type mismatches exist.
+(ld): comprld
+COMPRLD: Kept 4377 of 4377 relocation entries.
+(ld): origin page 0x10000000 0x20000000
+(ld): libpath /usr/lib:/nwprod/gempak/nawips1/os/aix5/lib:/usr/lpp/xlf/lib:/usr/lib:/lib
+LIBPATH: Library path set to /usr/lib:/nwprod/gempak/nawips1/os/aix5/lib:/usr/lpp/xlf/lib:/usr/lib:/lib
+(ld): save 1L .
+SAVE: Section sizes = 221926+13418+5000400 (0x362E6+0x346A+0x4C4CD0 hex)
+SAVE: Size of TOC: 1540 (0x604 hex)
+(ld): rc
+RC: Highest return code was 0.

@@ -1,0 +1,329 @@
+Page 1           Source Listing                  READ_GRIB
+2017-03-22 17:31                                 read_grib.f90
+
+      1 SUBROUTINE read_grib(lu, filename,leng, idim, jdim, nlev, hgt, temp, uwind, vwind, rh, press, ierr)
+      2 !******************************************************
+      3        INTEGER, PARAMETER :: isize =100
+      4        INTEGER, INTENT(IN) :: lu, leng, idim, jdim, nlev
+      5        CHARACTER (len=80), INTENT(IN) :: filename
+      6        INTEGER, INTENT(OUT) :: ierr
+      7        REAL, DIMENSION(idim, jdim, nlev), INTENT(INOUT) :: hgt, temp, uwind, vwind, rh
+      8        REAL, DIMENSION(idim, jdim), INTENT(INOUT) :: press
+      9 !
+     10        REAL, ALLOCATABLE, DIMENSION(:,:) :: grid
+     11        LOGICAL, ALLOCATABLE, DIMENSION(:,:) :: lbms 
+     12 !
+     13        INTEGER :: jpds(isize), jgds(isize), kpds(isize), kgds(isize)
+     14 !
+     15        INTEGER :: i,j,k,n, ii, ll, status, IRET
+     16 !
+     17        INTEGER, DIMENSION(14) :: levelmb = (/ 10, 20, 50, 100, 150, 200, 250, 300, 400, 500, 700, 850, 925, 1000 /)  
+     18 ! Logarithm of surface pressure [Pa] kpds5=152 kpds6=109 kpds7=1
+     19 !       INTEGER, DIMENSION(6,2) :: idxkpds(6,2) = RESHAPE ((/ 7, 11, 33, 34, 52, 1, 156, 130, 131, 132, 157, 152 /), (/6,2/)
+     19 )
+     20 ! Surface pressure [Pa] kpds5=134 kpds6=1 kpds7=0
+     21        INTEGER, DIMENSION(6,2) :: idxkpds(6,2) = RESHAPE ((/ 7, 11, 33, 34, 52, 1, 156, 130, 131, 132, 157, 134 /), (/6,2/))
+     22 !
+     23        ierr = 0
+     24        call baopenr(lu,filename(1:leng),ierr)
+     25        if(ierr.ne.0) then
+     26        print *,'error opening file ',filename(1:leng)
+     27        call abort
+     28        endif
+     29 !
+     30        N=-1
+     31        print*,'idim,jdim  ',idim,jdim
+     32        ALLOCATE (grid(idim,jdim), lbms(idim,jdim),  STAT=status)
+     33        If (status .ne. 0 ) THEN
+     34            write(*,*) "Allocation is not successful! Stop here."
+     35            ierr = -1
+     36            RETURN
+     37        END IF 
+     38        DO i = 1, idim
+     39        DO j = 1, jdim
+     40             press(i,j) = -999
+     41        DO k = 1, nlev
+     42             hgt(i,j,k) = -999
+     43             temp(i,j,k) = -999
+     44             uwind(i,j,k) = -999
+     45             vwind(i,j,k) = -999
+     46             rh(i,j,k) = -999
+     47        END DO
+     48        END DO
+     49        END DO 
+     50  100   continue
+     51        N=N+1
+     52 !
+     53        DO k=1, isize
+     54           jpds(k)=-1
+     55           kpds(k)=0
+     56           jgds(k)=-1
+
+Page 2           Source Listing                  READ_GRIB
+2017-03-22 17:31                                 read_grib.f90
+
+     57           kgds(k)=0
+     58        END DO
+     59 !
+     60        CALL GETGB(lu,0,idim*jdim,N,JPDS,JGDS,      &
+     61                  NDATA,KSKP,KPDS,KGDS,LBMS,GRID,IRET)
+     62 !
+     63        IF (iret.eq.0) THEN
+     64 !
+     65 !   If it is press surface
+     66 !   ECMWF - Logarithm of surface pressure [Pa] kpds5=152 kpds6=109 kpds7=1
+     67 !   ECMWF - Surface pressure [Pa] kpds5=134 kpds6=1 kpds7=0
+     68 !
+     69            IF (((kpds(5).eq.idxkpds(6,1)).or.(kpds(5).eq.idxkpds(6,2))).and.((kpds(6).eq.1).or.(kpds(6).eq.1))) Then
+     70                   DO i=1,idim
+     71                   DO j=1,jdim
+     72                          press(i,j)=grid(i,j)
+     73                   END DO
+     74                   END DO
+     75             END IF
+     76 
+     77            IF (kpds(6) .eq. 100) THEN
+     78 !   Find whether the field is  hgt, temp, uwind, vwind, rh, press?
+     79                do5: DO i = 1, 5
+     80                   ii = 0
+     81                   IF ( (kpds(5) .eq. idxkpds(i,1)) .or. (kpds(5) .eq. idxkpds(i,2))) THEN
+     82                       ii = i
+     83                       EXIT do5
+     84                   END IF
+     85                 END DO do5
+     86                 IF (ii .ne. 0 ) THEN
+     87 !   Find which level
+     88                    do14: DO i = 1, 14   
+     89                        ll = 0
+     90                        IF ( kpds(7) .eq. levelmb(i)) THEN
+     91                           ll = i
+     92                           EXIT do14
+     93                        END IF
+     94                    END DO do14
+     95                    IF ( ll .ne. 0 ) THEN
+     96                        SELECT CASE ( ii )
+     97                        CASE (1)
+     98                           DO i=1,idim
+     99                           DO j=1,jdim
+    100                              hgt(i,j,ll)=grid(i,j)
+    101                           END DO
+    102                           END DO
+    103                        CASE (2)
+    104                           DO i=1,idim
+    105                           DO j=1,jdim
+    106                              temp(i,j,ll)=grid(i,j)
+    107                           END DO
+    108                           END DO
+    109                        CASE (3)
+    110                           DO i=1,idim
+    111                           DO j=1,jdim
+    112                              uwind(i,j,ll)=grid(i,j)
+    113                           END DO
+
+Page 3           Source Listing                  READ_GRIB
+2017-03-22 17:31                                 read_grib.f90
+
+    114                           END DO
+    115                        CASE (4)
+    116                           DO i=1,idim
+    117                           DO j=1,jdim
+    118                              vwind(i,j,ll)=grid(i,j)
+    119                           END DO
+    120                           END DO
+    121                        CASE (5)
+    122                           DO i=1,idim
+    123                           DO j=1,jdim
+    124                              rh(i,j,ll)=grid(i,j)
+    125                           END DO
+    126                           END DO
+    127                        END SELECT
+    128                     END IF 
+    129                 END IF 
+    130            END IF
+    131        ELSE
+    132 
+    133           PRINT *,'rec ',n+1, IRET
+    134           call baclose(lu,ierr)
+    135           DEALLOCATE(grid, lbms,  STAT=status)
+    136           If (status .ne. 0 ) THEN
+    137              write(*,*) "Deallocation is not successful! Stop here."
+    138              ierr = -1
+    139           END IF
+    140  
+    141           RETURN
+    142 !
+    143        END IF
+    144 !
+    145        go to 100
+    146 !
+    147     
+    148        END SUBROUTINE read_grib
+
+Page 4           Source Listing                  READ_GRIB
+2017-03-22 17:31 Entry Points                    read_grib.f90
+
+
+
+ENTRY POINTS
+
+  Name                  
+                        
+ read_grib_             
+
+
+SYMBOL CROSS REFERENCE
+
+ Name                       Object Declared Type            Bytes Dimen Elements Attributes       References                        
+                                                                                                                                    
+ 100                        Label  50                                                             145                               
+ ABORT                      Subr   27                                                             27                                
+ BACLOSE                    Subr   134                                                            134                               
+ BAOPENR                    Subr   24                                                             24                                
+ DO14                       Label  88                                   scalar                    92,94                             
+ DO5                        Label  79                                   scalar                    83,85                             
+ FILENAME                   Dummy  1        CHAR            80          scalar   ARG,IN           24,26                             
+ GETGB                      Subr   60                                                             60                                
+ GRID                       Local  10       R(4)            4     2     1        ALC              32,61,72,100,106,112,118,124,135  
+ HGT                        Dummy  1        R(4)            4     3     0        ARG,INOUT        42,100                            
+ I                          Local  15       I(4)            4           scalar                    38,40,42,43,44,45,46,70,72,79,81,8
+                                                                                                  2,88,90,91,98,100,104,106,110,112,
+                                                                                                  116,118,122,124                   
+ IDIM                       Dummy  1        I(4)            4           scalar   ARG,IN           7,8,31,32,38,60,70,98,104,110,116,
+                                                                                                  122                               
+ IDXKPDS                    Local  21       I(4)            4     2     12                        21,69,81                          
+ IERR                       Dummy  1        I(4)            4           scalar   ARG,OUT          23,24,25,35,134,138               
+ II                         Local  15       I(4)            4           scalar                    80,82,86,96                       
+ IRET                       Local  15       I(4)            4           scalar                    61,63,133                         
+ ISIZE                      Param  3        I(4)            4           scalar                    13,53                             
+ J                          Local  15       I(4)            4           scalar                    39,40,42,43,44,45,46,71,72,99,100,
+                                                                                                  105,106,111,112,117,118,123,124   
+ JDIM                       Dummy  1        I(4)            4           scalar   ARG,IN           7,8,31,32,39,60,71,99,105,111,117,
+                                                                                                  123                               
+ JGDS                       Local  13       I(4)            4     1     100                       56,60                             
+ JPDS                       Local  13       I(4)            4     1     100                       54,60                             
+ K                          Local  15       I(4)            4           scalar                    41,42,43,44,45,46,53,54,55,56,57  
+ KGDS                       Local  13       I(4)            4     1     100                       57,61                             
+ KPDS                       Local  13       I(4)            4     1     100                       55,61,69,77,81,90                 
+ KSKP                       Local  61       I(4)            4           scalar                    61                                
+ LBMS                       Local  11       L(4)            4     2     1        ALC              32,61,135                         
+ LENG                       Dummy  1        I(4)            4           scalar   ARG,IN           24,26                             
+ LEVELMB                    Local  17       I(4)            4     1     14                        17,90                             
+ LL                         Local  15       I(4)            4           scalar                    89,91,95,100,106,112,118,124      
+ LU                         Dummy  1        I(4)            4           scalar   ARG,IN           24,60,134                         
+ N                          Local  15       I(4)            4           scalar                    30,51,60,133                      
+ NDATA                      Local  61       I(4)            4           scalar                    61                                
+ NLEV                       Dummy  1        I(4)            4           scalar   ARG,IN           7,41                              
+ PRESS                      Dummy  1        R(4)            4     2     0        ARG,INOUT        40,72                             
+ READ_GRIB                  Subr   1                                                                                                
+ RESHAPE                    Func   21                                   scalar                    21                                
+ RH                         Dummy  1        R(4)            4     3     0        ARG,INOUT        46,124                            
+ STATUS                     Local  15       I(4)            4           scalar                    32,33,135,136                     
+ TEMP                       Dummy  1        R(4)            4     3     0        ARG,INOUT        43,106                            
+
+Page 5           Source Listing                  READ_GRIB
+2017-03-22 17:31 Symbol Table                    read_grib.f90
+
+ Name                       Object Declared Type            Bytes Dimen Elements Attributes       References                        
+                                                                                                                                    
+ UWIND                      Dummy  1        R(4)            4     3     0        ARG,INOUT        44,112                            
+ VWIND                      Dummy  1        R(4)            4     3     0        ARG,INOUT        45,118                            
+
+Page 6           Source Listing                  READ_GRIB
+2017-03-22 17:31 Subprograms/Common Blocks       read_grib.f90
+
+
+
+SUBPROGRAMS/COMMON BLOCKS
+
+ Name                       Object Declared Type            Bytes Dimen Elements Attributes       References                        
+                                                                                                                                    
+ READ_GRIB                  Subr   1                                                                                                
+
+COMPILER OPTIONS BEING USED
+
+       -align nocommons                      -align nodcommons
+       -align noqcommons                     -align records
+       -align nosequence                     -align norec1byte
+       -align norec2byte                     -align norec4byte
+       -align norec8byte                     -align norec16byte
+       -altparam                             -assume accuracy_sensitive
+       -assume nobscc                        -assume nobuffered_io
+       -assume nobyterecl                    -assume nocc_omp
+       -assume nocstring                     -assume nodummy_aliases
+       -assume nofpe_summary                 -assume noieee_fpe_flags
+       -assume nominus0                      -assume noold_boz
+       -assume old_unit_star                 -assume old_ldout_format
+       -assume noold_logical_ldio            -assume old_maxminloc
+       -assume old_xor                       -assume protect_constants
+       -assume noprotect_parens              -assume split_common
+       -assume source_include                -assume nostd_intent_in
+       -assume nostd_mod_proc_name           -assume norealloc_lhs
+       -assume underscore                    -assume no2underscores
+  no   -auto                                 -auto_scalar
+  no   -bintext                              -ccdefault default
+       -check args                           -check arg_temp_created
+       -check bounds                         -check format
+       -check nooutput_conversion            -check overflow
+       -check pointers                       -check power
+       -check shape                          -check underflow
+       -check uninitialized                  -coarray-num-procs 0
+  no   -coarray-config-file                  -convert big_endian
+       -cross_reference                      -D __INTEL_COMPILER=1210
+       -D __unix__                           -D __unix
+       -D __linux__                          -D __linux
+       -D __gnu_linux__                      -D unix
+       -D linux                              -D __ELF__
+       -D __x86_64                           -D __x86_64__
+       -D _MT                                -D __INTEL_COMPILER_BUILD_DATE=20120612
+       -D __i686                             -D __i686__
+       -D __pentiumpro                       -D __pentiumpro__
+       -D __pentium4                         -D __pentium4__
+       -D __tune_pentium4__                  -D __SSE2__
+       -D __SSE__                            -D __MMX__
+       -double_size 64                  no   -d_lines
+  no   -Qdyncom                              -error_limit 30
+  no   -f66                             no   -f77rtl
+  no   -fast                                 -fpscomp nofilesfromcmd
+       -fpscomp nogeneral                    -fpscomp noioformat
+       -fpscomp noldio_spacing               -fpscomp nologicals
+  no   -fpconstant                           -fpe3
+       -fprm nearest                    no   -ftz
+
+Page 7           Source Listing                  READ_GRIB
+2017-03-22 17:31                                 read_grib.f90
+
+       -fp_model noprecise                   -fp_model fast
+       -fp_model nostrict                    -fp_model nosource
+       -fp_model nodouble                    -fp_model noextended
+       -fp_model novery_fast                 -fp_model noexcept
+       -fp_model nono_except                 -heap_arrays 0
+  no   -threadprivate_compat                 -free
+       -g2                                   -iface nomixed_str_len_arg
+       -iface nono_mixed_str_len_arg         -init nan
+       -init nozero                     no   -intconstant
+       -integer_size 32                 no   -mixed_str_len_arg
+  no   -module                               -names lowercase
+  no   -noinclude                            -O2
+  no   -pad_source                           -real_size 32
+  no   -recursive                            -reentrancy none
+  no   -sharable_localsaves                  -vec=simd
+       -show noinclude                       -show map
+       -show options                    no   -syntax_only
+  no   -threadcom                       no   -U
+  no   -vms                                  -w noall
+       -w nonone                             -w alignments
+       -w noargument_checking                -w nodeclarations
+       -w general                            -w noignore_bounds
+       -w noignore_loc                       -w nointerfaces
+       -w notruncated_source                 -w uncalled
+       -w uninitialized                      -w nounused
+       -w usage
+
+       -includepath : /gpfs/gp1/usrx/local/intel/composer_xe_2011_sp1.11.339/compiler/include/,.f,./.f,/usrx/local/intel/composerxe/mkl/include/.f,
+           /usrx/local/intel/composerxe/tbb/include/.f,/gpfs/gp1/usrx/local/intel/composer_xe_2011_sp1.11.339/compiler/include/intel64/.f,
+           /gpfs/gp1/usrx/local/intel/composer_xe_2011_sp1.11.339/compiler/include/.f,/usr/local/include/.f,/usr/lib/gcc/x86_64-redhat-linux/4.4.7/include/.f,
+           /usr/include/.f,/usr/include/.f
+       -list filename : read_grib.lst
+       -o    filename : none
+
+COMPILER: Intel(R) Fortran 12.1-2100

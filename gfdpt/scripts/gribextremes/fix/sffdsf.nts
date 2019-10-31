@@ -1,0 +1,7 @@
+SFEFIL  mark.dat                                                                                                                        
+SFOUTF  mark.sfc                                                                                                                        
+AREA    -90;-180;90;180                                                                                                                 
+SFPRMF  mark.pack                                                                                                                       
+DATTIM  000807/1200                                                                                                                     
+TIMSTN  3/200                                                                                                                           
+FORMAT  mklein                                                                                                                          

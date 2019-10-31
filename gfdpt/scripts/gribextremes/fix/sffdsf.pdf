@@ -1,0 +1,7 @@
+SFEFIL  Text data file
+SFOUTF  Output GEMPAK SF file
+AREA    Data area
+SFPRMF  Packing file
+DATTIM  Date/time to assign
+TIMSTN  Times/stations
+FORMAT  Data format name

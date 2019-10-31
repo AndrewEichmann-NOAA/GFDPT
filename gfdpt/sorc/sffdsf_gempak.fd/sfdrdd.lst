@@ -1,0 +1,1219 @@
+IBM XL Fortran for AIX, V12.1 (5724-U82) Version 12.01.0000.0001 --- /gpfs/c/nco/ops/nwprod/sorc/sffdsf_gempak.fd/sfdrdd.f 01/28/09 14:52:18
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         32              CR              DBG             DDIM
+         ESCAPE          FULLPATH        I4              INLGLUE
+         NOLIBESSL       NOLIBPOSIX      OBJECT          SOURCE
+         STRICT          SWAPOMP         THREADED        UNWIND
+         NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         ALIAS_SIZE(65536)     FIXED(72)             MAXMEM(-1)
+         OPTIMIZE(2)           SPILLSIZE(548)        STACKTEMP(0)
+  
+  
+         ==  Options Of Character Type  ==
+         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR6)            ATTR()                AUTODBL(NONE)
+         CHECK()               DESCRIPTOR(V1)        DIRECTIVE(IBM*,IBMT)
+         ENUM()                FLAG(I,I)             FLOAT(RNDSNGL,MAF,FOLD,RNGCHK,SINGLE)
+         FLTTRAP(OVERFLOW,ZERODIVIDE,INVALID,ENABLE)
+         HALT(S)               IEEE(NEAR)            INITAUTO(FF911299)
+         INTSIZE(4)            LANGLVL(EXTENDED)     POSITION(APPENDOLD)
+         REALSIZE(4)           NOSAVE()              SIGTRAP()
+         TUNE(PWR6)            UNROLL(AUTO)          XREF(FULL)
+         XLF2003(NOPOLYMORPHIC,NOBOZLITARGS,NOSTOPEXCEPT,NOVOLATILE,NOAUTOREALLOC,OLDNANINF)
+         XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC,OLDPAD)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |        SUBROUTINE SFDRDD ( lunin, frmt, nprmsf, parms, npgiv, stid,
+          2 |     +			     istnm, slat, slon, selv, sfdata, iret )
+          3 |C************************************************************************
+          4 |C* SFDRDD								*
+          5 |C*									*
+          6 |C* This subroutine reads the next record from a surface text formatted	*	
+          7 |C* dataset.								*
+          8 |C*									*
+          9 |C* SFDRDD  ( LUNIN, FRMT, NPRMSF, PARMS, STID, ISTNM, SLAT, SLON, SELV,	*
+         10 |C*	     SFDATA, IRET )						*
+         11 |C*									*
+         12 |C* Input parameters:							*
+         13 |C*	LUNIN		INTEGER		Data input file unit number	*
+         14 |C*	FRMT		CHAR*		Model type for data		*
+         15 |C*	NPRMSF 		INTEGER		Number of surface parms		*
+         16 |C*	PARMS		CHAR*		Parameter names			*
+         17 |C*									*
+         18 |C* Output parameters:							*
+         19 |C*	STID		CHAR*		Station ID			*
+         20 |C*	ISTNM		INTEGER		Station number			*
+         21 |C*	SLAT		REAL		Station latitude (deg)		*
+         22 |C*	SLON		REAL		Station longitude (deg)		*
+         23 |C*	SELV		REAL		Station elevation (m)		*
+         24 |C*	SFDATA (*)	REAL		Array of surface data		*
+         25 |C*	IRET		INTEGER		Return code			*
+         26 |C*					  0 = normal			*
+         27 |C*					 +1 = End of input file		*
+         28 |C*					 -8 = Error reading input file	*
+         29 |C*					-20 = Invalid station list type *
+         30 |C**									*
+         31 |C* Log:									*
+         32 |C* K. Brill/NMC		 2/94						*
+         33 |C* K. Brill/NMC		 1/95	Add TYPE, convert MRF lat/lon & selv	*
+         34 |C* V. Krishna Kumar/NCO  5/01   Modified to read the number of          *
+         35 |C*                              parameters to be plotted. User has to   *
+         36 |C*                              provide that information.               *
+         37 |C************************************************************************
+         38 |	INCLUDE		'GEMPRM.PRM'
+  1       1 |C************************************************************************
+  1       2 |C* GEMPRM.PRM
+  1       3 |C*
+  1       4 |C* This include file contains parameter definitions for the GEMPAK
+  1       5 |C* software.
+  1       6 |C*
+  1       7 |C**
+  1       8 |C* Log:	See gemprm.log
+  1       9 |C************************************************************************
+  1      10 |C!
+  1      11 |	PARAMETER	( MTVAX  =     2   )
+  1      12 |	PARAMETER	( MTSUN  =     3   )
+  1      13 |	PARAMETER	( MTIRIS =     4   )
+  1      14 |	PARAMETER	( MTAPOL =     5   )
+  1      15 |	PARAMETER	( MTIBM  =     6   )
+  1      16 |	PARAMETER	( MTIGPH =     7   )
+  1      17 |	PARAMETER	( MTULTX =     8   )
+  1      18 |	PARAMETER	( MTHP   =     9   )
+  1      19 |	PARAMETER	( MTALPH =    10   )
+  1      20 |	PARAMETER	( MTLNUX =    11   )
+  1      21 |	INCLUDE 'MCHPRM.PRM'
+  2       1 |C************************************************************************
+  2       2 |C* MCHPRM.AIX								*
+  2       3 |C*									*
+  2       4 |C* This include file contains IBM specific parameter definitions for	*
+  2       5 |C*	the GEMPAK software.						*
+  2       6 |C*									*
+  2       7 |C* AIX version								*
+  2       8 |C**									*
+  2       9 |C* Log:									*
+  2      10 |C* K. Brill/HPC		 8/02	Define LLMXTG				*
+  2      11 |C* R. Tian/SAIC		 9/02	Increase LLMXGD from 97000 to 275000	*
+  2      12 |C* K. Brill/HPC		11/02	Set LLMXTG = 1000000			*
+  2      13 |C* T. Piper/SAIC         3/03   Increased LLMXTG to 4000000             *
+  2      14 |C* S. Jacobs/NCEP	 3/03	Reduced LLMXTG back to 1000000		*
+  2      15 |C* S. Jacobs/NCEP	 3/03	Reduced LLMXTG to LLMXGD		*
+  2      16 |C* T. Piper/SAIC	08/04	Increased LLMXTG to 750,000		*
+  2      17 |C* T. Piper/SAIC        05/05   Increased LLMXPT from 10K to 50K        *
+  2      18 |C* T. Piper/SAIC        07/05   Increased LLMXPT to 80K                 *
+  2      19 |C* D.W.Plummer/NCEP	07/06	Increased LLMXGD to 750000		*
+  2      20 |C* D.W.Plummer/NCEP	07/06	Increased LLMXGD & LLMXTG to 1M		*
+  2      21 |C************************************************************************
+  2      22 |C!
+  2      23 |	PARAMETER	( MTMACH =  MTIBM  )
+  2      24 |C!						Machine type
+  2      25 |C!						Raob, VAS data source
+  2      26 |	PARAMETER	( MMRECL =     4   )
+  2      27 |C!						Multiplier for RECL in
+  2      28 |C!						file create/open
+  2      29 |C!						(usually 4 on UNIX sys)
+  2      30 |C!
+  2      31 |C!	ASCII character constants
+  2      32 |C!
+  2      33 |	CHARACTER*1	CHNULL, CHCTLA, CHCTLC, CHTAB,  CHLF,  CHFF
+  2      34 |	CHARACTER*1	CHCR,   CHCAN,  CHESC,  CHFS,   CHGS,  CHRS
+  2      35 |	CHARACTER*1	CHUS,   CHSPAC, CHTLDA
+  2      36 |C!
+  2      37 |	PARAMETER	( CHNULL = X'00' )
+  2      38 |C!						Null
+  2      39 |	PARAMETER	( CHCTLA = X'01' )
+  2      40 |C!						Control A
+  2      41 |	PARAMETER	( CHCTLC = X'03' )
+  2      42 |C!						Control C
+  2      43 |	PARAMETER	( CHTAB  = X'09' )
+  2      44 |C!						Tab
+  2      45 |	PARAMETER	( CHLF   = X'0A' )
+  2      46 |C!						Line feed
+  2      47 |	PARAMETER	( CHFF   = X'0C' )
+  2      48 |C!						Form feed
+  2      49 |	PARAMETER	( CHCR   = X'0D' )
+  2      50 |C!						Carriage return
+  2      51 |	PARAMETER	( CHCAN  = X'18' )
+  2      52 |C!						Cancel (CAN)
+  2      53 |	PARAMETER	( CHESC  = X'1B' )
+  2      54 |C!						Escape
+  2      55 |	PARAMETER	( CHFS   = X'1C' )
+  2      56 |C!						FS
+  2      57 |	PARAMETER	( CHGS   = X'1D' )
+  2      58 |C!						GS
+  2      59 |	PARAMETER	( CHRS   = X'1E' )
+  2      60 |C!						Record Separator
+  2      61 |	PARAMETER	( CHUS   = X'1F' )
+  2      62 |C!						US
+  2      63 |	PARAMETER	( CHSPAC = X'20' )
+  2      64 |C!						Space
+  2      65 |	PARAMETER	( CHTLDA = X'7E' )
+  2      66 |C!						Tilda
+  2      67 |C!
+  2      68 |	PARAMETER	( LLMXPT = 80000 )
+  2      69 |C!						Max # lines, polygons, ...
+  2      70 |	PARAMETER	( LLMXGD = 1000000 )
+  2      71 |C!						Max # grid points
+  2      72 |	PARAMETER	( LLMXTG = 1000000 )
+  2      73 |C!						Max # transfer grid pnts
+  2      74 |C!
+  2      75 |C!	FORTRAN specific PARAMETERS
+  2      76 |C!
+  2      77 |C!-----------------------GPLT BUFFER SIZE--------------------------------
+  2      78 |	PARAMETER	( IGBSZM  = 20 + ( 4 * LLMXGD ) )
+  2      79 |C!					Min desired GPLT buffer size
+  2      80 |C!
+  2      81 |	PARAMETER	( IGBSIZ = (128*(1+INT((IGBSZM-1)/128))))
+  2      82 |C!					Makes buffer size mul. of 128
+  2      83 |C!
+  2      84 |C!-----------------------DEVICE BUFFER SIZE------------------------------
+  2      85 |	PARAMETER	( IGDSZM = 20 + ( 5 * LLMXPT ) )
+  2      86 |C!					Min desired DEVICE buffer size
+  2      87 |C!
+  2      88 |	PARAMETER	( IGDSIZ = (128*(1+INT((IGDSZM-1)/128))))
+  2      89 |C!					Makes buffer size mul. of 128
+  2      90 |C!
+  2      91 |
+  1      22 |C!
+  1      23 |C!	Missing data definitions
+  1      24 |C!
+  1      25 |	PARAMETER	( RMISSD = -9999.0 )
+  1      26 |C!						Missing data value
+  1      27 |	PARAMETER	( RDIFFD =  0.1    )
+  1      28 |C!						Missing value fuzziness
+  1      29 |	PARAMETER	( IMISSD = -9999   )
+  1      30 |C!						Missing integer value
+  1      31 |C!
+  1      32 |C!	Physical and mathematical constants
+  1      33 |C!
+  1      34 |	PARAMETER	( PI = 3.14159265  )
+  1      35 |	PARAMETER	( HALFPI = PI / 2. )
+  1      36 |	PARAMETER	( TWOPI  = 2. * PI )
+  1      37 |	PARAMETER	( PI4TH  = PI / 4. )
+  1      38 |C!						PI,...
+  1      39 |	PARAMETER	( DTR = PI / 180.  )
+  1      40 |	PARAMETER	( RTD = 180. / PI  )
+  1      41 |C!						Degrees <--> Radians
+  1      42 |	PARAMETER	( SM2M = 1609.34 )
+  1      43 |	REAL		M2SM
+  1      44 |	PARAMETER	( M2SM = 6.21E-4 )
+  1      45 |C!						Statute miles <--> Meters
+  1      46 |	REAL		NM2M, M2NM
+  1      47 |	PARAMETER	( NM2M = 1852.0 )
+  1      48 |	PARAMETER	( M2NM = 5.4E-4 )
+  1      49 |C!						Nautical miles <--> Meters
+  1      50 |	PARAMETER	( RADIUS = 6371200. )
+  1      51 |C!						Earth radius
+  1      52 |	PARAMETER	( OMEGA  = 7.2921E-5 )
+  1      53 |C!						Earth angular veclocity
+  1      54 |	PARAMETER	( GRAVTY = 9.80616  )
+  1      55 |C!						Acceleration of gravity
+  1      56 |	PARAMETER	( RDGAS  = 287.04   )
+  1      57 |	PARAMETER	( RKAP   = RDGAS / GRAVTY )
+  1      58 |C!						Gas constant of dry air
+  1      59 |	PARAMETER	( RKAPPA = 2. / 7. )
+  1      60 |	PARAMETER	( AKAPPA = 7. / 2. )
+  1      61 |C!						Poisson constant;inverse
+  1      62 |	PARAMETER	( GAMUSD = 6.5 )
+  1      63 |C!						US std atmos lapse rate
+  1      64 |	PARAMETER	( TMCK   = 273.15 )
+  1      65 |C!						Centigrade -> Kelvin
+  1      66 |C!
+  1      67 |C!	File information parameters
+  1      68 |C!
+  1      69 |	PARAMETER	( MMKEY  =    12   )
+  1      70 |C!						Maximum # of keys
+  1      71 |	PARAMETER	( MMPRT  =    20   )
+  1      72 |C!						Maximum # of parts
+  1      73 |	PARAMETER	( MMLIST =    20   )
+  1      74 |C!						Maximum search list
+  1      75 |	PARAMETER	( MMFREE =    62   )
+  1      76 |C!						Number of free pairs
+  1      77 |	PARAMETER	( MMFILE =     3   )
+  1      78 |C!						Maximum # of open files
+  1      79 |	PARAMETER	( MBLKSZ =   128   )
+  1      80 |C!						Block size
+  1      81 |	PARAMETER	( MCACHE =     8   )
+  1      82 |C!						# of cached records
+  1      83 |	PARAMETER	( MMPARM =    44   )
+  1      84 |C!						Maximum # of parameters
+  1      85 |	PARAMETER	( MMFHDR =    10   )
+  1      86 |C!						Maximum # of file hdrs
+  1      87 |	PARAMETER	( MMSRCH =    30   )
+  1      88 |C!						Max # of cond searches
+  1      89 |	PARAMETER	( MXFLSZ =   100   )
+  1      90 |C!						Maximum file name size
+  1      91 |C!						(not including path)
+  1      92 |	PARAMETER	( MXNMFL =  1000   )
+  1      93 |C!						Max # of files per dir.
+  1      94 |	PARAMETER	( MXTMPL =  48   )
+  1      95 |C!						Max template size.
+  1      96 |C!
+  1      97 |	PARAMETER	( MMFLDP = MMFILE * MMPRT )
+  1      98 |C!
+  1      99 |	PARAMETER	( MDREAL =     1   )
+  1     100 |	PARAMETER	( MDINTG =     2   )
+  1     101 |	PARAMETER	( MDCHAR =     3   )
+  1     102 |	PARAMETER	( MDRPCK =     4   )
+  1     103 |	PARAMETER	( MDGRID =     5   )
+  1     104 |C!						Data types in DM lib
+  1     105 |	PARAMETER	( MDGNON =     0   )
+  1     106 |	PARAMETER	( MDGGRB =     1   )
+  1     107 |	PARAMETER	( MDGNMC =     2   )
+  1     108 |	PARAMETER	( MDGDIF =     3   )
+  1     109 |	PARAMETER	( MDGDEC =     4   )
+  1     110 |C!						Grid packing types
+  1     111 |	PARAMETER	( MFSF =       1   )
+  1     112 |	PARAMETER	( MFSN =       2   )
+  1     113 |	PARAMETER	( MFGD =       3   )
+  1     114 |C!						Data file types
+  1     115 |	PARAMETER	( MFUNKN =    99   )
+  1     116 |	PARAMETER	( MFAIRW  =    1   )
+  1     117 |	PARAMETER	( MFMETR =     2   )
+  1     118 |	PARAMETER	( MFSHIP =     3   )
+  1     119 |C!						Unknown, airways, metar,
+  1     120 |C!						ship data source
+  1     121 |	PARAMETER	( MFBUOY =     4   )
+  1     122 |	PARAMETER	( MFSYNP =     5   )
+  1     123 |	PARAMETER	( MFRAOB =     4   )
+  1     124 |	PARAMETER	( MFVAS  =     5   )
+  1     125 |	PARAMETER	( MFCOUN =     7   )
+  1     126 |C!						Buoy, synoptic, rawinsonde,
+  1     127 |C!						VAS, watch-by-county data
+  1     128 |C!						source
+  1     129 |	PARAMETER	( MFGRID =     6   )
+  1     130 |C!						Grid source
+  1     131 |	PARAMETER	( MFTEXT =   100   )
+  1     132 |C!						Text
+  1     133 |C!
+  1     134 |C!	Declarations for array sizes in programs
+  1     135 |C!
+  1     136 |	PARAMETER	( LLAXIS =   64    )
+  1     137 |C!						Max # of axis labels
+  1     138 |	PARAMETER	( LLCLEV =   50    )
+  1     139 |C!						Max # of contour lvls
+  1     140 |	PARAMETER	( LLGDHD =   128   )
+  1     141 |C!						Max grid hdr length
+  1     142 |	PARAMETER	( LLMAXD =   128   )
+  1     143 |C!						Max # of background grid
+  1     144 |	PARAMETER	( LLMDGG = 4000000 )
+  1     145 |C!						Max mem for intern grids
+  1     146 |	PARAMETER	( LLMXGT =  1000   )
+  1     147 |C!						Max # grid times
+  1     148 |	PARAMETER	( LLMXLN =   128   )
+  1     149 |C!						Max length of input
+  1     150 |	PARAMETER	( LLMXLV =   500   )
+  1     151 |C!						Max # levels/station
+  1     152 |	PARAMETER	( LLMXDT = MMPARM * LLMXLV )
+  1     153 |C!						Max # data points
+  1     154 |	PARAMETER	( LLMXST =    20   )
+  1     155 |C!						Max # stations in list
+  1     156 |	PARAMETER	( LLMXTM =   200   )
+  1     157 |C!						Max # times/dataset
+  1     158 |	PARAMETER	( LLNANL =   128   )
+  1     159 |C!						Grid anl block length
+  1     160 |	PARAMETER	( LLNNAV =   256   )
+  1     161 |C!						Grid nav block length
+  1     162 |	PARAMETER	( LLOAGD =   400   )
+  1     163 |C!						Max # grids from 1 OA
+  1     164 |	PARAMETER	( LLSTFL =  30000   )
+  1     165 |C!						Max # stations in file
+  1     166 |	PARAMETER	( LLSTHL =    20   )
+  1     167 |C!						Max header size
+  1     168 |	PARAMETER	( LLTMCX =  100    )
+  1     169 |C!						Max # of time xsect pts
+  1     170 |	PARAMETER	( MAX_CNTY =  400  )
+  1     171 |C!						Max # of counties in watch
+  1     172 |	PARAMETER	( MAXWFO   =  150  )
+  1     173 |C!						Max # of WFOs;
+  1     174 |	PARAMETER	( MMHDRS = LLSTFL + LLMXTM )
+  1     175 |C!						Maximum # of headers
+  1     176 |	PARAMETER	( MXLOOP =    30   )
+  1     177 |C!						Maximum frames in loop
+  1     178 |	PARAMETER	( MXXPTS   =  1000 )
+  1     179 |C!						Max # of cross section points;
+  1     180 |C!
+  1     181 |C!	Image file types (defined here and in gemprm.h)
+  1     182 |C!
+  1     183 |	PARAMETER	( IFINVD = -1	   )
+  1     184 |	PARAMETER	( IFAREA =  1	   )
+  1     185 |	PARAMETER	( IFGINI =  2	   )
+  1     186 |	PARAMETER	( IFNIDS =  3	   )
+  1     187 |	PARAMETER	( IFNOWR =  4	   )
+  1     188 |	PARAMETER	( IFNCDF =  5      )
+  1     189 |	PARAMETER	( IFNEXZ =  6      )
+  1     190 |	PARAMETER	( IFNFAX =  7      )
+  1     191 |C!
+  1     192 |C!						File type NONE,
+  1     193 |C!						AREA (MCIDAS),
+  1     194 |C!						GINI (AWIPS), NIDS
+  1     195 |C!						radar, NOWRad (WSI),
+  1     196 |C!						NetCDF (NCDF), NEXRAD compressed
+  1     197 |C!						6-bit FAX,
+  1     198 |C!
+  1     199 |C!	Data category and subcategory types
+  1     200 |C!		(defined here and in gemprm.h)
+  1     201 |C!
+  1     202 |	INTEGER		CAT_NIL, CAT_IMG, CAT_SFC, CAT_SFF, CAT_SND
+  1     203 |	INTEGER		CAT_SNF, CAT_GRD, CAT_VGF, CAT_MSC
+  1     204 |C!
+  1     205 |	PARAMETER	( CAT_NIL  = 0 )
+  1     206 |C!						None or not useful
+  1     207 |	PARAMETER	( CAT_IMG  = 1 )
+  1     208 |C!						Images
+  1     209 |	PARAMETER	( CAT_SFC  = 2 )
+  1     210 |C!						Surface observations
+  1     211 |	PARAMETER	( CAT_SFF  = 3 )
+  1     212 |C!						Surface forcast (MOS)
+  1     213 |	PARAMETER	( CAT_SND  = 4 )
+  1     214 |C!						Upper air observations
+  1     215 |	PARAMETER	( CAT_SNF  = 5 )
+  1     216 |C!						Upper air forecast
+  1     217 |	PARAMETER	( CAT_GRD  = 6 )
+  1     218 |C!						Grid
+  1     219 |	PARAMETER	( CAT_VGF  = 7 )
+  1     220 |C!						Vector graphics file
+  1     221 |	PARAMETER	( CAT_MSC = 8 )
+  1     222 |C!						Misc (watches, warnings)
+  1     223 |C!
+  1     224 |	INTEGER		SCAT_NIL, SCAT_SFC, SCAT_SHP, SCAT_SFF
+  1     225 |	INTEGER		SCAT_FFG, SCAT_SND, SCAT_SNF
+  1     226 |	INTEGER		SCAT_FCT, SCAT_ANL
+  1     227 |C!
+  1     228 |	PARAMETER	( SCAT_NIL = 0 )
+  1     229 |C!						None or not useful
+  1     230 |	PARAMETER	( SCAT_SFC = 1 )
+  1     231 |C!						Surface data in
+  1     232 |C!						daily files
+  1     233 |	PARAMETER	( SCAT_SHP = 2 )
+  1     234 |C!						Ship format data in
+  1     235 |C!						hourly files
+  1     236 |	PARAMETER	( SCAT_SFF = 3 )
+  1     237 |C!						Surface forecast
+  1     238 |	PARAMETER	( SCAT_FFG = 4 )
+  1     239 |C!						Flash flood guidance
+  1     240 |	PARAMETER	( SCAT_SND = 5 )
+  1     241 |C!						Upper air
+  1     242 |	PARAMETER	( SCAT_SNF = 6 )
+  1     243 |C!						Upper air forecast
+  1     244 |	PARAMETER	( SCAT_FCT = 7 )
+  1     245 |C!						Grid - forecast
+  1     246 |	PARAMETER	( SCAT_ANL = 8 )
+  1     247 |C!						Grid - analysis
+  1     248 |C!
+  1     249 |C!
+  1     250 |C!	FORTRAN specific PARAMETERS
+  1     251 |C!
+  1     252 |C!----------------------- COORDINATE SYSTEMS -----------------------------
+  1     253 |	CHARACTER	sysup*12, syslo*12
+  1     254 |	PARAMETER	( sysup = 'SDNVPLUWMQIG', syslo = 'sdnvpluwmqig' )
+  1     255 |C!
+  1     256 |C!-----------------------GPLT SYMBOL SIZE--------------------------------
+  1     257 |	PARAMETER	( RADCLM = .13 )
+  1     258 |C!					Calm wind circle radius
+  1     259 |	PARAMETER	( RADSKY = 3.5 )
+  1     260 |C!					Sky cover symbol radius
+  1     261 |	PARAMETER	( RSZPTN = 9.0 )
+  1     262 |C!						Pressure tendency symbol size
+  1     263 |C!
+  1     264 |C!-----------------------GPLT BUFFER SIZE--------------------------------
+  1     265 |C!
+  1     266 |	PARAMETER	( IGTBSZ  = 1100   )
+  1     267 |C!
+  1     268 |C!-----------------------CYLINDRICAL MAP TRANSFORMATIONS-----------------
+  1     269 |	PARAMETER 	( MCCYL = 1 )
+  1     270 |	PARAMETER 	( MPCEQU = 1, MPCMER = 2, MPCMCD = 3 )
+  1     271 |	PARAMETER	( MSCEQU = 1 )
+  1     272 |C!
+  1     273 |C!-----------------------AZIMUTHAL MAP TRANSFORMATIONS-------------------
+  1     274 |	PARAMETER 	( MCAZM = 2 )
+  1     275 |	PARAMETER 	( MPAEQU = 1, MPASTR = 2, MPAORT = 3,
+  1     276 |     +                    MPALAM = 4 )
+  1     277 |	PARAMETER 	( MPAGNO = 5 )
+  1     278 |	PARAMETER	( MSANOR = 1, MSASOU = 2 )
+  1     279 |C!
+  1     280 |C!-----------------------CONICAL MAP TRANSFORMATIONS---------------------
+  1     281 |	PARAMETER 	( MCCON = 3 )
+  1     282 |	PARAMETER	( MPCNOR = 1, MPCSOU = 2 )
+  1     283 |C!
+  1     284 |C!-----------------------OBLIQUE MERCATOR--------------------------------
+  1     285 |	PARAMETER	( MCMER = 4 )
+  1     286 |	PARAMETER	( MPTMER = 1, MPUTM = 2, MPOBLQ = 3 )
+  1     287 |C!
+  1     288 |C!-----------------------SATELLITE TRANSFORMATIONS-----------------------
+  1     289 |	PARAMETER 	( MCGOES = 6 )
+  1     290 |	PARAMETER 	( MPMCI = 1 )
+  1     291 |C!
+  1     292 |C!-----------------------COLOR TABLE INFORMATION-------------------------
+  1     293 |	PARAMETER	( MXCLNM = 50 )
+  1     294 |C!				Maximum number of color names saved
+  1     295 |C!
+  1     296 |C!-----------------------DEVICE CHARACTERISTICS--------------------------
+  1     297 |	PARAMETER	( NDVCHR = 27 )
+  1     298 |C!				Size of /DEVCHR/ to be passed
+  1     299 |
+         39 |C*
+         40 |	CHARACTER*(*)	frmt, parms(*), stid
+         41 |	REAL		sfdata (npgiv)
+         42 |C*
+         43 |	CHARACTER*8	type, cstid
+         44 |	CHARACTER*1	nrth, west
+         45 |	SAVE		iseq
+         46 |	DATA		iseq / 0 /
+         47 |	DEG ( x ) = FLOAT ( INT (x) ) + FLOAT ( MOD ( INT ( x * 100. +
+         48 |     +		    .5 ), 100 ) ) / 60.
+         49 |C----------------------------------------------------------------------
+         50 |	iret = 0
+         51 |	cstid = ' '
+         52 |	CALL ST_LCUC ( frmt, type, ier )
+         53 |C*
+         54 |	IF ( type .eq. 'MKLEIN' ) THEN
+         55 |	    READ ( lunin, *, ERR=10, END=20 ) istnm, stid, slat, slon,
+         56 |     +		(sfdata (i),i=1,npgiv)
+         57 |        print*,istnm,stid,slat,slon,(sfdata (i),i=1,npgiv)
+         58 |C
+         59 |	    selv = 0.
+         60 |	    RETURN
+         61 |	ELSE IF ( type .eq. 'ETAOLD' ) THEN
+         62 |	    READ ( lunin, 1001, ERR=10, END=20 ) istnm, rlat, nrth,
+         63 |     +					     rlon, west, selv
+         64 |1001	    FORMAT (I5,1X,F5.2,A1,1X,F6.2,A1,35X,F4.0)
+         65 |C*
+         66 |	ELSE IF ( type .eq. 'ETA' ) THEN
+         67 |	    READ ( lunin, 1201, ERR=10, END=20 ) istnm, rlat, nrth,
+         68 |     +					     rlon, west, cstid, ipt,
+         69 |     +					     iclas, selv
+         70 |1201	    FORMAT (I6,1X,F5.2,A1,1X,F6.2,A1,1X,A4,1X,2I1,28X,F4.0)
+         71 |	    sfdata ( 1 ) = istnm
+         72 |	    sfdata ( 2 ) = ipt
+         73 |	    sfdata ( 3 ) = iclas
+         74 |	    stid = cstid
+         75 |	    IF ( nrth .eq. 'S' ) THEN
+         76 |		rlat = - rlat
+         77 |	    END IF
+         78 |	    IF ( west .eq. 'W' ) THEN
+         79 |		rlon = - rlon
+         80 |	    END IF
+         81 |	    slat = rlat
+         82 |	    slon = rlon
+         83 |	    IF ( slon .gt. 180. ) slon = slon - 360.
+         84 |	    RETURN
+         85 |	ELSE IF ( type .eq. 'TAF' ) THEN
+         86 |	    READ (lunin,1004, ERR=10, END=20 ) istnm, slat, slon,
+         87 |     +		  selv, is, ifl
+         88 |1004	    FORMAT ( I6,1X,F6.2,1X,F7.2,1X,F5.0,1X,I6,1X,I1 )
+         89 |	    sfdata (1) = FLOAT (is)
+         90 |	    sfdata (2) = FLOAT (ifl)
+         91 |	    stid = ' '
+         92 |	    RETURN
+         93 |	ELSE IF ( type .eq. 'MRF' ) THEN
+         94 |	    READ ( lunin, 1002, ERR=10, END=20 ) istnm, selv, nrth,
+         95 |     +					rlat, west, rlon
+         96 |1002	    FORMAT (32X,I5,2X,F4.0,2X,A1,F5.2,1X,A1,F6.2)
+         97 |C
+         98 |C*	    Convert deg.min to deg.hundredths.
+         99 |C
+        100 |	    rlon = DEG ( rlon )
+        101 |	    rlat = DEG ( rlat )
+        102 |C
+        103 |C*	    Convert feet to meters.
+        104 |C
+        105 |	    selv = selv * .3048
+        106 |C*
+        107 |	ELSE IF ( type .eq. 'FDWIND' ) THEN
+        108 |	    READ (lunin,1003,ERR=10,END=20) stid, selv, slat, slon
+        109 |1003	    FORMAT ( 2X,A3,15X,I5,F6.2,F7.2 )
+        110 |	    iseq = iseq + 1
+        111 |	    istnm = iseq
+        112 |	    sfdata ( 1 ) = istnm
+        113 |	    slon = - slon
+        114 |	    RETURN
+        115 |	ELSE
+        116 |	    iret = -20
+        117 |            CALL ER_WMSG  ( 'SFFDSF', iret, 'Invalid list type. ',
+        118 |     +			    ier )
+        119 |
+        120 |	    RETURN
+        121 |	END IF
+        122 |C*
+        123 |	sfdata ( 1 ) = istnm
+        124 |	stid = cstid
+        125 |	IF ( nrth .eq. 'S' ) THEN
+        126 |	    rlat = - rlat
+        127 |	END IF
+        128 |	IF ( west .eq. 'W' ) THEN
+        129 |	    rlon = - rlon
+        130 |	END IF
+        131 |	slat = rlat
+        132 |	slon = rlon
+        133 |C**	print 232, ' STNM, Lat,Lon = ', istnm, slat, slon
+        134 |C**232	format ( a,i12,', ',f12.4,', ',f12.4)
+        135 |	IF ( slon .gt. 180. ) slon = slon - 360.
+        136 |	RETURN
+        137 |C*
+        138 |10	CONTINUE
+        139 |	    iret = -8
+        140 |	    RETURN
+        141 |20	CONTINUE
+        142 |	    iret = 1
+        143 |	RETURN
+        144 |	END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+akappa                           Parameter, Real(4)
+                                 1-60.14$
+ 
+cat_grd                          Parameter, Integer(4)
+                                 1-203.20$  1-217.14$
+ 
+cat_img                          Parameter, Integer(4)
+                                 1-202.20$  1-207.14$
+ 
+cat_msc                          Parameter, Integer(4)
+                                 1-203.38$  1-221.14$
+ 
+cat_nil                          Parameter, Integer(4)
+                                 1-202.11$  1-205.14$
+ 
+cat_sfc                          Parameter, Integer(4)
+                                 1-202.29$  1-209.14$
+ 
+cat_sff                          Parameter, Integer(4)
+                                 1-202.38$  1-211.14$
+ 
+cat_snd                          Parameter, Integer(4)
+                                 1-202.47$  1-213.14$
+ 
+cat_snf                          Parameter, Integer(4)
+                                 1-203.11$  1-215.14$
+ 
+cat_vgf                          Parameter, Integer(4)
+                                 1-203.29$  1-219.14$
+ 
+chcan                            Parameter, Character(1)
+                                 2-34.22$  2-51.14$
+ 
+chcr                             Parameter, Character(1)
+                                 2-34.14$  2-49.14$
+ 
+chctla                           Parameter, Character(1)
+                                 2-33.22$  2-39.14$
+ 
+chctlc                           Parameter, Character(1)
+                                 2-33.30$  2-41.14$
+ 
+chesc                            Parameter, Character(1)
+                                 2-34.30$  2-53.14$
+ 
+chff                             Parameter, Character(1)
+                                 2-33.53$  2-47.14$
+ 
+chfs                             Parameter, Character(1)
+                                 2-34.38$  2-55.14$
+ 
+chgs                             Parameter, Character(1)
+                                 2-34.46$  2-57.14$
+ 
+chlf                             Parameter, Character(1)
+                                 2-33.46$  2-45.14$
+ 
+chnull                           Parameter, Character(1)
+                                 2-33.14$  2-37.14$
+ 
+chrs                             Parameter, Character(1)
+                                 2-34.53$  2-59.14$
+ 
+chspac                           Parameter, Character(1)
+                                 2-35.22$  2-63.14$
+ 
+chtab                            Parameter, Character(1)
+                                 2-33.38$  2-43.14$
+ 
+chtlda                           Parameter, Character(1)
+                                 2-35.30$  2-65.14$
+ 
+chus                             Parameter, Character(1)
+                                 2-35.14$  2-61.14$
+ 
+cstid                            Automatic, Character(8), Offset: 0, Alignment: full word
+                                 0-43.20$  0-51.2@  0-68.29@  0-74.13  0-124.9
+ 
+deg                              Pure Statement Function Real(4)
+                                 0-47.2@  0-100.13  0-101.13
+ 
+dtr                              Parameter, Real(4)
+                                 1-39.14$
+ 
+er_wmsg                          External Subroutine
+                                 0-117.18
+ 
+float                            Pure Intrinsic
+                                 0-47.14  0-47.14  0-47.34  0-47.34  0-89.19  0-90.19
+ 
+frmt                             Reference argument, Character*(*), Offset: 0, Alignment: byte
+                                 0-40.16$  0-1.36  0-52.17
+ 
+gamusd                           Parameter, Real(4)
+                                 1-62.14$
+ 
+gravty                           Parameter, Real(4)
+                                 1-54.14$  1-57.31
+ 
+halfpi                           Parameter, Real(4)
+                                 1-35.14$
+ 
+i                                Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-56.18  0-56.21@  0-57.46  0-57.49@
+ 
+iclas                            Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-69.17@  0-73.21
+ 
+ier                              Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-52.29  0-118.14
+ 
+ifarea                           Parameter, Integer(4)
+                                 1-184.14$
+ 
+ifgini                           Parameter, Integer(4)
+                                 1-185.14$
+ 
+ifinvd                           Parameter, Integer(4)
+                                 1-183.14$
+ 
+ifl                              Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-87.21@  0-90.26
+ 
+ifncdf                           Parameter, Integer(4)
+                                 1-188.14$
+ 
+ifnexz                           Parameter, Integer(4)
+                                 1-189.14$
+ 
+ifnfax                           Parameter, Integer(4)
+                                 1-190.14$
+ 
+ifnids                           Parameter, Integer(4)
+                                 1-186.14$
+ 
+ifnowr                           Parameter, Integer(4)
+                                 1-187.14$
+ 
+igbsiz                           Parameter, Integer(4)
+                                 2-81.14$
+ 
+igbszm                           Parameter, Integer(4)
+                                 2-78.14$  2-81.36
+ 
+igdsiz                           Parameter, Integer(4)
+                                 2-88.14$
+ 
+igdszm                           Parameter, Integer(4)
+                                 2-85.14$  2-88.36
+ 
+igtbsz                           Parameter, Integer(4)
+                                 1-266.14$
+ 
+imissd                           Parameter, Integer(4)
+                                 1-29.14$
+ 
+int                              Pure Intrinsic
+                                 0-47.22  0-47.22  0-47.48  0-47.48  2-81.31  2-88.31
+ 
+ipt                              Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-68.36@  0-72.21
+ 
+iret                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-2.48  0-50.2@  0-116.6@  0-117.39  0-139.6@  0-142.6@
+ 
+is                               Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-87.17@  0-89.26
+ 
+iseq                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-45.8$  0-46.8*  0-110.6@  0-110.13  0-111.14
+ 
+istnm                            Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-2.15  0-55.40@  0-57.16  0-62.43@  0-67.43@  0-71.21  0-86.41@  0-94.43@  0-111.6@  0-112.21
+                                 0-123.17
+ 
+llaxis                           Parameter, Integer(4)
+                                 1-136.14$
+ 
+llclev                           Parameter, Integer(4)
+                                 1-138.14$
+ 
+llgdhd                           Parameter, Integer(4)
+                                 1-140.14$
+ 
+llmaxd                           Parameter, Integer(4)
+                                 1-142.14$
+ 
+llmdgg                           Parameter, Integer(4)
+                                 1-144.14$
+ 
+llmxdt                           Parameter, Integer(4)
+                                 1-152.14$
+ 
+llmxgd                           Parameter, Integer(4)
+                                 2-70.14$  2-78.35
+ 
+llmxgt                           Parameter, Integer(4)
+                                 1-146.14$
+ 
+llmxln                           Parameter, Integer(4)
+                                 1-148.14$
+ 
+llmxlv                           Parameter, Integer(4)
+                                 1-150.14$  1-152.32
+ 
+llmxpt                           Parameter, Integer(4)
+                                 2-68.14$  2-85.34
+ 
+llmxst                           Parameter, Integer(4)
+                                 1-154.14$
+ 
+llmxtg                           Parameter, Integer(4)
+                                 2-72.14$
+ 
+llmxtm                           Parameter, Integer(4)
+                                 1-156.14$  1-174.32
+ 
+llnanl                           Parameter, Integer(4)
+                                 1-158.14$
+ 
+llnnav                           Parameter, Integer(4)
+                                 1-160.14$
+ 
+lloagd                           Parameter, Integer(4)
+                                 1-162.14$
+ 
+llstfl                           Parameter, Integer(4)
+                                 1-164.14$  1-174.23
+ 
+llsthl                           Parameter, Integer(4)
+                                 1-166.14$
+ 
+lltmcx                           Parameter, Integer(4)
+                                 1-168.14$
+ 
+lunin                            Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.29  0-55.13  0-62.13  0-67.13  0-86.12  0-94.13  0-108.12
+ 
+m2nm                             Parameter, Real(4)
+                                 1-46.14$  1-48.14$
+ 
+m2sm                             Parameter, Real(4)
+                                 1-43.8$  1-44.14$
+ 
+max_cnty                         Parameter, Integer(4)
+                                 1-170.14$
+ 
+maxwfo                           Parameter, Integer(4)
+                                 1-172.14$
+ 
+mblksz                           Parameter, Integer(4)
+                                 1-79.14$
+ 
+mcache                           Parameter, Integer(4)
+                                 1-81.14$
+ 
+mcazm                            Parameter, Integer(4)
+                                 1-274.15$
+ 
+mccon                            Parameter, Integer(4)
+                                 1-281.15$
+ 
+mccyl                            Parameter, Integer(4)
+                                 1-269.15$
+ 
+mcgoes                           Parameter, Integer(4)
+                                 1-289.15$
+ 
+mcmer                            Parameter, Integer(4)
+                                 1-285.14$
+ 
+mdchar                           Parameter, Integer(4)
+                                 1-101.14$
+ 
+mdgdec                           Parameter, Integer(4)
+                                 1-109.14$
+ 
+mdgdif                           Parameter, Integer(4)
+                                 1-108.14$
+ 
+mdggrb                           Parameter, Integer(4)
+                                 1-106.14$
+ 
+mdgnmc                           Parameter, Integer(4)
+                                 1-107.14$
+ 
+mdgnon                           Parameter, Integer(4)
+                                 1-105.14$
+ 
+mdgrid                           Parameter, Integer(4)
+                                 1-103.14$
+ 
+mdintg                           Parameter, Integer(4)
+                                 1-100.14$
+ 
+mdreal                           Parameter, Integer(4)
+                                 1-99.14$
+ 
+mdrpck                           Parameter, Integer(4)
+                                 1-102.14$
+ 
+mfairw                           Parameter, Integer(4)
+                                 1-116.14$
+ 
+mfbuoy                           Parameter, Integer(4)
+                                 1-121.14$
+ 
+mfcoun                           Parameter, Integer(4)
+                                 1-125.14$
+ 
+mfgd                             Parameter, Integer(4)
+                                 1-113.14$
+ 
+mfgrid                           Parameter, Integer(4)
+                                 1-129.14$
+ 
+mfmetr                           Parameter, Integer(4)
+                                 1-117.14$
+ 
+mfraob                           Parameter, Integer(4)
+                                 1-123.14$
+ 
+mfsf                             Parameter, Integer(4)
+                                 1-111.14$
+ 
+mfship                           Parameter, Integer(4)
+                                 1-118.14$
+ 
+mfsn                             Parameter, Integer(4)
+                                 1-112.14$
+ 
+mfsynp                           Parameter, Integer(4)
+                                 1-122.14$
+ 
+mftext                           Parameter, Integer(4)
+                                 1-131.14$
+ 
+mfunkn                           Parameter, Integer(4)
+                                 1-115.14$
+ 
+mfvas                            Parameter, Integer(4)
+                                 1-124.14$
+ 
+mmfhdr                           Parameter, Integer(4)
+                                 1-85.14$
+ 
+mmfile                           Parameter, Integer(4)
+                                 1-77.14$  1-97.23
+ 
+mmfldp                           Parameter, Integer(4)
+                                 1-97.14$
+ 
+mmfree                           Parameter, Integer(4)
+                                 1-75.14$
+ 
+mmhdrs                           Parameter, Integer(4)
+                                 1-174.14$
+ 
+mmkey                            Parameter, Integer(4)
+                                 1-69.14$
+ 
+mmlist                           Parameter, Integer(4)
+                                 1-73.14$
+ 
+mmparm                           Parameter, Integer(4)
+                                 1-83.14$  1-152.23
+ 
+mmprt                            Parameter, Integer(4)
+                                 1-71.14$  1-97.32
+ 
+mmrecl                           Parameter, Integer(4)
+                                 2-26.14$
+ 
+mmsrch                           Parameter, Integer(4)
+                                 1-87.14$
+ 
+mod                              Pure Intrinsic
+                                 0-47.42  0-47.42
+ 
+mpaequ                           Parameter, Integer(4)
+                                 1-275.15$
+ 
+mpagno                           Parameter, Integer(4)
+                                 1-277.15$
+ 
+mpalam                           Parameter, Integer(4)
+                                 1-276.27$
+ 
+mpaort                           Parameter, Integer(4)
+                                 1-275.39$
+ 
+mpastr                           Parameter, Integer(4)
+                                 1-275.27$
+ 
+mpcequ                           Parameter, Integer(4)
+                                 1-270.15$
+ 
+mpcmcd                           Parameter, Integer(4)
+                                 1-270.39$
+ 
+mpcmer                           Parameter, Integer(4)
+                                 1-270.27$
+ 
+mpcnor                           Parameter, Integer(4)
+                                 1-282.14$
+ 
+mpcsou                           Parameter, Integer(4)
+                                 1-282.26$
+ 
+mpmci                            Parameter, Integer(4)
+                                 1-290.15$
+ 
+mpoblq                           Parameter, Integer(4)
+                                 1-286.37$
+ 
+mptmer                           Parameter, Integer(4)
+                                 1-286.14$
+ 
+mputm                            Parameter, Integer(4)
+                                 1-286.26$
+ 
+msanor                           Parameter, Integer(4)
+                                 1-278.14$
+ 
+msasou                           Parameter, Integer(4)
+                                 1-278.26$
+ 
+mscequ                           Parameter, Integer(4)
+                                 1-271.14$
+ 
+mtalph                           Parameter, Integer(4)
+                                 1-19.14$
+ 
+mtapol                           Parameter, Integer(4)
+                                 1-14.14$
+ 
+mthp                             Parameter, Integer(4)
+                                 1-18.14$
+ 
+mtibm                            Parameter, Integer(4)
+                                 1-15.14$  2-23.24
+ 
+mtigph                           Parameter, Integer(4)
+                                 1-16.14$
+ 
+mtiris                           Parameter, Integer(4)
+                                 1-13.14$
+ 
+mtlnux                           Parameter, Integer(4)
+                                 1-20.14$
+ 
+mtmach                           Parameter, Integer(4)
+                                 2-23.14$
+ 
+mtsun                            Parameter, Integer(4)
+                                 1-12.14$
+ 
+mtultx                           Parameter, Integer(4)
+                                 1-17.14$
+ 
+mtvax                            Parameter, Integer(4)
+                                 1-11.14$
+ 
+mxclnm                           Parameter, Integer(4)
+                                 1-293.14$
+ 
+mxflsz                           Parameter, Integer(4)
+                                 1-89.14$
+ 
+mxloop                           Parameter, Integer(4)
+                                 1-176.14$
+ 
+mxnmfl                           Parameter, Integer(4)
+                                 1-92.14$
+ 
+mxtmpl                           Parameter, Integer(4)
+                                 1-94.14$
+ 
+mxxpts                           Parameter, Integer(4)
+                                 1-178.14$
+ 
+ndvchr                           Parameter, Integer(4)
+                                 1-297.14$
+ 
+nm2m                             Parameter, Real(4)
+                                 1-46.8$  1-47.14$
+ 
+npgiv                            Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.57  0-41.16  0-41.16  0-56.25  0-57.53
+ 
+nprmsf                           Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.42
+ 
+nrth                             Automatic, Character(1), Offset: 0, Alignment: full word
+                                 0-44.14$  0-62.56@  0-67.56@  0-75.11  0-94.56@  0-125.7
+ 
+omega                            Parameter, Real(4)
+                                 1-52.14$
+ 
+parms                            Reference argument, Character*(*) (1:*), Offset: 0, Alignment: byte
+                                 0-40.22$  0-1.50
+ 
+pi                               Parameter, Real(4)
+                                 1-34.14$  1-35.23  1-36.28  1-37.23  1-39.20  1-40.27
+ 
+pi4th                            Parameter, Real(4)
+                                 1-37.14$
+ 
+radclm                           Parameter, Real(4)
+                                 1-257.14$
+ 
+radius                           Parameter, Real(4)
+                                 1-50.14$
+ 
+radsky                           Parameter, Real(4)
+                                 1-259.14$
+ 
+rdgas                            Parameter, Real(4)
+                                 1-56.14$  1-57.23
+ 
+rdiffd                           Parameter, Real(4)
+                                 1-27.14$
+ 
+rkap                             Parameter, Real(4)
+                                 1-57.14$
+ 
+rkappa                           Parameter, Real(4)
+                                 1-59.14$
+ 
+rlat                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-62.50@  0-67.50@  0-76.3@  0-76.12  0-81.13  0-95.12@  0-101.6@  0-101.19  0-126.6@  0-126.15
+                                 0-131.9
+ 
+rlon                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-63.17@  0-68.17@  0-79.3@  0-79.12  0-82.13  0-95.24@  0-100.6@  0-100.19  0-129.6@  0-129.15
+                                 0-132.9
+ 
+rmissd                           Parameter, Real(4)
+                                 1-25.14$
+ 
+rszptn                           Parameter, Real(4)
+                                 1-261.14$
+ 
+rtd                              Parameter, Real(4)
+                                 1-40.14$
+ 
+scat_anl                         Parameter, Integer(4)
+                                 1-226.21$  1-246.14$
+ 
+scat_fct                         Parameter, Integer(4)
+                                 1-226.11$  1-244.14$
+ 
+scat_ffg                         Parameter, Integer(4)
+                                 1-225.11$  1-238.14$
+ 
+scat_nil                         Parameter, Integer(4)
+                                 1-224.11$  1-228.14$
+ 
+scat_sfc                         Parameter, Integer(4)
+                                 1-224.21$  1-230.14$
+ 
+scat_sff                         Parameter, Integer(4)
+                                 1-224.41$  1-236.14$
+ 
+scat_shp                         Parameter, Integer(4)
+                                 1-224.31$  1-233.14$
+ 
+scat_snd                         Parameter, Integer(4)
+                                 1-225.21$  1-240.14$
+ 
+scat_snf                         Parameter, Integer(4)
+                                 1-225.31$  1-242.14$
+ 
+selv                             Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-2.34  0-59.6@  0-63.29@  0-69.24@  0-87.11@  0-94.50@  0-105.6@  0-105.13  0-108.44@
+ 
+sfdata                           Reference argument, Real(4) (1:?), Offset: 0, Alignment: full word
+                                 0-41.8$  0-2.40  0-56.10@  0-57.38  0-71.6@  0-72.6@  0-73.6@  0-89.6@  0-90.6@  0-112.6@  0-123.2@
+ 
+sfdrdd                           Subroutine
+                                 0-1.20$
+ 
+slat                             Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-2.22  0-55.53@  0-57.27  0-81.6@  0-86.48@  0-108.50@  0-131.2@
+ 
+slon                             Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-2.28  0-55.59@  0-57.32  0-82.6@  0-83.11  0-83.28@  0-83.35  0-86.54@  0-108.56@  0-113.6@
+                                 0-113.15  0-132.2@  0-135.7  0-135.24@  0-135.31
+ 
+sm2m                             Parameter, Real(4)
+                                 1-42.14$
+ 
+st_lcuc                          External Subroutine
+                                 0-52.7
+ 
+stid                             Reference argument, Character*(*), Offset: 0, Alignment: byte
+                                 0-40.32$  0-1.64  0-55.47@  0-57.22  0-74.6@  0-91.6@  0-108.38@  0-124.2@
+ 
+syslo                            Parameter, Character(12)
+                                 1-253.22$  1-254.38$
+ 
+sysup                            Parameter, Character(12)
+                                 1-253.12$  1-254.14$
+ 
+tmck                             Parameter, Real(4)
+                                 1-64.14$
+ 
+twopi                            Parameter, Real(4)
+                                 1-36.14$
+ 
+type                             Automatic, Character(8), Offset: 0, Alignment: full word
+                                 0-43.14$  0-52.23  0-54.7  0-61.12  0-66.12  0-85.12  0-93.12  0-107.12
+ 
+west                             Automatic, Character(1), Offset: 0, Alignment: full word
+                                 0-44.20$  0-63.23@  0-68.23@  0-78.11  0-95.18@  0-128.7
+ 
+x                                Value argument, Real(4), Offset: 0, Alignment: full word
+                                 0-47.8  0-47.27  0-47.54
+ 
+** sfdrdd   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    sfdrdd.f                    12/18/08   11:46:13
+     1    /nwprod/gempak/nawips1/gempak/include/GEMPRM.PRM
+                                      12/20/08   13:06:44      0      38
+     2    /nwprod/gempak/nawips1/os/aix5/include/MCHPRM.PRM
+                                      12/20/08   13:06:44      1      21
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................     534
+1501-510  Compilation successful for file sfdrdd.f.
+1501-543  Object file created.

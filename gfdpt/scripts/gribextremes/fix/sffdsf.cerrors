@@ -1,0 +1,58 @@
+(ld): halt 4
+(ld): setopt strip 
+(ld): lrgpage 0
+(ld): savename sffdsf
+(ld): filelist 19 2
+(ld): i /lib/crt0_r.o
+(ld): i sffdsf.o
+(ld): i sfdchk.o
+(ld): i sfdinp.o
+(ld): i sfdopn.o
+(ld): i sfdrdd.o
+(ld): i sfdsst.o
+(ld): i /nwprod/gempak/nawips2/lib/aix4/gemlib.a
+(ld): i /nwprod/gempak/nawips2/lib/aix4/appl.a
+(ld): i /nwprod/gempak/nawips2/lib/aix4/syslib.a
+(ld): i /nwprod/gempak/nawips2/lib/aix4/cgemlib.a
+(ld): lib /usr/lib/libg.a
+(ld): lib /usr/lib/libxlf90.a
+(ld): lib /usr/lib/libxlopt.a
+(ld): lib /usr/lib/libxlf.a
+(ld): lib /usr/lib/libxlomp_ser.a
+(ld): lib /usr/lib/libpthreads.a
+(ld): lib /usr/lib/libm.a
+(ld): lib /usr/lib/libc.a
+LIBRARY: Shared object libxlf90.a[io.o]: 70 symbols imported.
+LIBRARY: Shared object libxlf90.a[math.o]: 344 symbols imported.
+LIBRARY: Shared object libxlf90.a[xlfsys.o]: 33 symbols imported.
+LIBRARY: Shared object libxlf90.a[_xlf_posix_xpg5.o]: 85 symbols imported.
+LIBRARY: Symbols imported from import file /usr/lib/libxlf90.a[_xlf_aio.imp]: 10
+LIBRARY: Shared object libxlf.a[shr.o]: 135 symbols imported.
+LIBRARY: Shared object libxlomp_ser.a[omp_ser.o]: 61 symbols imported.
+LIBRARY: Shared object libpthreads.a[shr_comm.o]: 152 symbols imported.
+LIBRARY: Shared object libpthreads.a[shr_xpg5.o]: 125 symbols imported.
+LIBRARY: Shared object libc.a[shr.o]: 2379 symbols imported.
+LIBRARY: Shared object libc.a[meth.o]: 2 symbols imported.
+LIBRARY: Shared object libc.a[aio.o]: 11 symbols imported.
+LIBRARY: Shared object libc.a[pse.o]: 4 symbols imported.
+LIBRARY: Shared object libc.a[dl.o]: 4 symbols imported.
+LIBRARY: Shared object libc.a[pty.o]: 1 symbols imported.
+FILELIST: Number of previously inserted files processed: 19
+(ld): exports /usr/lib/libg.exp 
+EXPORTS: Symbols exported: 4
+(ld): resolve
+RESOLVE: 990 of 21238 symbols were kept.
+(ld): addgl /usr/lib/glink.o
+ADDGL: Glink code added for 34 symbols.
+(ld): er full
+ER: There are no unresolved symbols.
+(ld): mismatch
+MISMATCH: No type mismatches exist.
+(ld): comprld
+COMPRLD: Kept 3219 of 3219 relocation entries.
+(ld): origin page 0x10000000 0x20000000
+(ld): save 1L .
+SAVE: Section sizes = 156172+10552+2098484 (0x2620C+0x2938+0x200534 hex)
+SAVE: Size of TOC: 1556 (0x614 hex)
+(ld): rc
+RC: Highest return code was 0.

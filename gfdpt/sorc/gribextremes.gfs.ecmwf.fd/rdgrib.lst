@@ -1,0 +1,1233 @@
+Page 1           Source Listing                  _unnamed_main$_$BLK
+2017-03-22 17:31                                 rdgrib.f90
+
+      1 !
+      2 ! This file reads a pgbgrib (GRIB1) file and saves the requested
+      3 ! variables into respective three dimensional arrays for further use 
+      4 !
+      5 ! Author: V. Krishna Kumar NCEP/Central Operations/SIB September 2010 
+      6 !
+      7 !.... use fcmpsp to compile....
+      8 !     KPDS         INTEGER (200) UNPACKED PDS PARAMETERS
+      9 !     KGDS         INTEGER (200) UNPACKED GDS PARAMETERS
+     10 !     JPDS         INTEGER (200) PDS PARAMETERS FOR WHICH TO SEARCH
+     11 !                  (=-1 FOR WILDCARD)
+     12 !          (1)   - ID OF CENTER
+     13 !          (2)   - GENERATING PROCESS ID NUMBER
+     14 !          (3)   - GRID DEFINITION
+     15 !          (4)   - GDS/BMS FLAG (RIGHT ADJ COPY OF OCTET 8)
+     16 !          (5)   - INDICATOR OF PARAMETER
+     17 !          (6)   - TYPE OF LEVEL
+     18 !          (7)   - HEIGHT/PRESSURE , ETC OF LEVEL
+     19 !          (8)   - YEAR INCLUDING (CENTURY-1)
+     20 !          (9)   - MONTH OF YEAR
+     21 !          (10)  - DAY OF MONTH
+     22 !          (11)  - HOUR OF DAY
+     23 !          (12)  - MINUTE OF HOUR
+     24 !          (13)  - INDICATOR OF FORECAST TIME UNIT
+     25 !          (14)  - TIME RANGE 1
+     26 !          (15)  - TIME RANGE 2
+     27 !          (16)  - TIME RANGE FLAG
+     28 !          (17)  - NUMBER INCLUDED IN AVERAGE
+     29 !          (18)  - VERSION NR OF GRIB SPECIFICATION
+     30 !          (19)  - VERSION NR OF PARAMETER TABLE
+     31 !          (20)  - NR MISSING FROM AVERAGE/ACCUMULATION
+     32 !          (21)  - CENTURY OF REFERENCE TIME OF DATA
+     33 !          (22)  - UNITS DECIMAL SCALE FACTOR
+     34 !          (23)  - SUBCENTER NUMBER
+     35 !          (24)  - PDS BYTE 29, FOR NMC ENSEMBLE PRODUCTS
+     36 !                  128 IF FORECAST FIELD ERROR
+     37 !                   64 IF BIAS CORRECTED FCST FIELD
+     38 !                   32 IF SMOOTHED FIELD
+     39 !                  WARNING: CAN BE COMBINATION OF MORE THAN 1
+     40 !          (25)  - PDS BYTE 30, NOT USED
+     41 !     JGDS         INTEGER (200) GDS PARAMETERS FOR WHICH TO SEARCH
+     42 !                  (ONLY SEARCHED IF JPDS(3)=255)
+     43 !                  (=-1 FOR WILDCARD)
+     44 !          (1)   - DATA REPRESENTATION TYPE
+     45 !          (19)  - NUMBER OF VERTICAL COORDINATE PARAMETERS
+     46 !          (20)  - OCTET NUMBER OF THE LIST OF VERTICAL COORDINATE
+     47 !                  PARAMETERS
+     48 !                  OR
+     49 !                  OCTET NUMBER OF THE LIST OF NUMBERS OF POINTS
+     50 !                  IN EACH ROW
+     51 !                  OR
+     52 !                  255 IF NEITHER ARE PRESENT
+     53 !          (21)  - FOR GRIDS WITH PL, NUMBER OF POINTS IN GRID
+     54 !          (22)  - NUMBER OF WORDS IN EACH ROW
+     55 !       LATITUDE/LONGITUDE GRIDS
+     56 !          (2)   - N(I) NR POINTS ON LATITUDE CIRCLE
+     57 !          (3)   - N(J) NR POINTS ON LONGITUDE MERIDIAN
+
+Page 2           Source Listing                  _unnamed_main$_$BLK
+2017-03-22 17:31                                 rdgrib.f90
+
+     58 !          (4)   - LA(1) LATITUDE OF ORIGIN
+     59 !          (5)   - LO(1) LONGITUDE OF ORIGIN
+     60 !          (6)   - RESOLUTION FLAG (RIGHT ADJ COPY OF OCTET 17)
+     61 !          (7)   - LA(2) LATITUDE OF EXTREME POINT
+     62 !          (8)   - LO(2) LONGITUDE OF EXTREME POINT
+     63 !          (9)   - DI LONGITUDINAL DIRECTION OF INCREMENT
+     64 !          (10)  - DJ LATITUDINAL DIRECTION INCREMENT
+     65 !          (11)  - SCANNING MODE FLAG (RIGHT ADJ COPY OF OCTET 28)
+     66 !
+     67 !   OUTPUT ARGUMENTS OF GETGB:
+     68 !     KF           INTEGER NUMBER OF DATA POINTS UNPACKED
+     69 !     K            INTEGER MESSAGE NUMBER UNPACKED
+     70 !                  (CAN BE SAME AS J IN CALLING PROGRAM
+     71 !                  IN ORDER TO FACILITATE MULTIPLE SEARCHES)
+     72 !     KPDS         INTEGER (200) UNPACKED PDS PARAMETERS
+     73 !     KGDS         INTEGER (200) UNPACKED GDS PARAMETERS
+     74 !     LB           LOGICAL*1 (KF) UNPACKED BITMAP IF PRESENT
+     75 !     F            REAL (KF) UNPACKED DATA
+     76 !     IRET         INTEGER RETURN CODE
+     77 !                    0      ALL OK
+     78 !                    96     ERROR READING INDEX FILE
+     79 !                    97     ERROR READING GRIB FILE
+     80 !                    98     NUMBER OF DATA POINTS GREATER THAN JF
+     81 !                    99     REQUEST NOT FOUND
+     82 !                    OTHER  W3FI63 GRIB UNPACKER RETURN CODE
+     83 !******************************************************
+     84        CHARACTER (len=80) :: input_gfs, input_ecmwf, input_ges
+     85        CHARACTER*4 cleva,clevs(14)  
+     86 !
+     87        REAL, ALLOCATABLE, DIMENSION(:,:,:) :: hgt, temp, uwind, vwind, rh   ! NCEP ANL
+     88        REAL, ALLOCATABLE, DIMENSION(:,:,:) :: hgte, tempe, uwinde, vwinde, rhe ! ECMWF ANL
+     89        REAL, ALLOCATABLE, DIMENSION(:,:,:) :: hgtg, tempg, uwindg, vwindg, rhg   ! NCEP GES
+     90        REAL, ALLOCATABLE, DIMENSION(:,:,:) :: hgtd, tempd, windd, rhd  ! NCEP - ECMWF ANL
+     91        REAL, ALLOCATABLE, DIMENSION(:,:,:) :: hgtdg, tempdg, winddg, rhdg  ! NCEP ANL - GES
+     92        REAL, ALLOCATABLE, DIMENSION(:,:,:) :: hgtdeg, tempdeg, winddeg, rhdeg  ! ECMWF ANL - GES
+     93        REAL, ALLOCATABLE, DIMENSION(:,:) :: spressa, spresse,spressg   ! spressa holds NCEP analysis surf P 
+     94        REAL, ALLOCATABLE, DIMENSION(:,:) :: presstl, presszl  ! are limits pressures for temps and heights to be used
+     95 !         spresse will be missing for ECMWF and spressg holds Guess
+     96        REAL, ALLOCATABLE, DIMENSION(:) :: tbias,zbias,wbias,trms,zrms,wrms
+     97        DIMENSION nlevs(14)
+     98 !
+     99        DIMENSION wlat(181)
+    100        DIMENSION pwgtz(14),pwgtt(14),pwgtw(14),play(14)
+    101        DIMENSION pwgtza(14),pwgtta(14),pwgtwa(14)
+    102        INTEGER :: ilev,i,j,k,n,nr,nlev, ii, ll, status, ierr, leng, lu
+    103        INTEGER zext1i(20000),zext1j(20000),zext1k(20000),zext1p(20000)
+    104        DIMENSION zext1id(20000),zext1vd(20000),zext1gd(20000)
+    105        DIMENSION zext1mx(20000),zext1mn(20000)
+    106        INTEGER zext2i(20000),zext2j(20000),zext2k(20000),zext2p(20000)
+    107        DIMENSION zext2id(20000),zext2vd(20000),zext2gd(20000)
+    108        DIMENSION zext2mx(20000),zext2mn(20000)
+    109        INTEGER text1i(20000),text1j(20000),text1k(20000),text1p(20000)
+    110        DIMENSION text1id(20000),text1vd(20000),text1gd(20000)
+    111        DIMENSION text1mx(20000),text1mn(20000)
+    112        INTEGER text2i(20000),text2j(20000),text2k(20000),text2p(20000)
+    113        DIMENSION text2id(20000),text2vd(20000),text2gd(20000)
+    114        DIMENSION text2mx(20000),text2mn(20000)
+
+Page 3           Source Listing                  _unnamed_main$_$BLK
+2017-03-22 17:31                                 rdgrib.f90
+
+    115        INTEGER wext1i(20000),wext1j(20000),wext1k(20000),wext1p(20000)
+    116        DIMENSION wext1id(20000),wext1vd(20000),wext1gd(20000)
+    117        DIMENSION wext1mx(20000),wext1mn(20000)
+    118        INTEGER wext2i(20000),wext2j(20000),wext2k(20000),wext2p(20000)
+    119        DIMENSION wext2id(20000),wext2vd(20000),wext2gd(20000)
+    120        DIMENSION wext2mx(20000),wext2mn(20000)
+    121 
+    122        INTEGER zexta1i(20000),zexta1j(20000),zexta1k(20000),zexta1p(20000)
+    123        DIMENSION zexta1id(20000),zexta1vd(20000),zexta1ed(20000)
+    124        DIMENSION zexta1mx(20000),zexta1mn(20000)
+    125        INTEGER zexta2i(20000),zexta2j(20000),zexta2k(20000),zexta2p(20000)
+    126        DIMENSION zexta2id(20000),zexta2vd(20000),zexta2ed(20000)
+    127        DIMENSION zexta2mx(20000),zexta2mn(20000)
+    128        INTEGER texta1i(20000),texta1j(20000),texta1k(20000),texta1p(20000)
+    129        DIMENSION texta1id(20000),texta1vd(20000),texta1ed(20000)
+    130        DIMENSION texta1mx(20000),texta1mn(20000)
+    131        INTEGER texta2i(20000),texta2j(20000),texta2k(20000),texta2p(20000)
+    132        DIMENSION texta2id(20000),texta2vd(20000),texta2ed(20000)
+    133        DIMENSION texta2mx(20000),texta2mn(20000)
+    134        INTEGER wexta1i(20000),wexta1j(20000),wexta1k(20000),wexta1p(20000)
+    135        DIMENSION wexta1id(20000),wexta1vd(20000),wexta1ed(20000)
+    136        DIMENSION wexta1mx(20000),wexta1mn(20000)
+    137        INTEGER wexta2i(20000),wexta2j(20000),wexta2k(20000),wexta2p(20000)
+    138        DIMENSION wexta2id(20000),wexta2vd(20000),wexta2ed(20000)
+    139        DIMENSION wexta2mx(20000),wexta2mn(20000)
+    140 
+    141        DATA nlevs/10,20,50,100,150,200,250,300,400,500,700,850,925,1000/
+    142        DATA clevs/'10','20','50','100','150','200','250','300','400','500','700','850','925','1000'/
+    143        DATA pwgtz/0.4,0.6,0.8,0.9,1.0,1.0,1.0,1.0,1.0,1.0,0.8,0.6,0.3,0.2/
+    144        DATA pwgtt/0.6,0.8,0.9,1.0,1.0,1.0,1.0,1.0,1.0,1.0,0.9,0.8,0.7,0.6/
+    145        DATA pwgtw/0.8,0.9,1.0,1.0,0.9,0.8,0.9,1.0,1.0,1.0,0.9,0.8,0.7,0.6/
+    146        DATA pwgtza/0.5,0.7,0.8,0.9,1.0,1.0,1.0,1.0,1.0,1.0,0.7,0.6,0.5,0.3/
+    147        DATA pwgtta/0.5,0.7,0.8,0.9,1.0,1.0,1.0,1.0,1.0,0.8,0.5,0.5,0.4,0.3/
+    148 !
+    149        idim = 360  ! is number of longitude points 0 to 360 degrees
+    150        jdim = 181  ! is number of latitude points 90 to -90 degrees
+    151        nlev = 14
+    152        nzext1 = 0  ! is counter for initial points with large z difs that may be max difs
+    153        nzmaxout = 0 ! is counter for output of extreme z difs
+    154        ntext1 = 0
+    155        ntmaxout = 0
+    156        nwext1 = 0
+    157        nwmaxout = 0
+    158        nzexta1 = 0  ! is counter for initial points with large z anl difs that may be max difs
+    159        nzmaxaout = 0 ! is counter for output of extreme anl z difs
+    160        ntexta1 = 0
+    161        ntmaxaout = 0
+    162        nwexta1 = 0
+    163        nwmaxaout = 0
+    164        ngemouta=0  ! is number of gempak outputs a=all or total
+    165        ngemoutt=0  ! is number of gempak outputs t=temps
+    166        ngemoutw=0  ! is number of gempak outputs w=winds
+    167        ngemoutz=0  ! is number of gempak outputs z=heights
+    168        PI=4.0*ATAN(1.0)
+    169 !
+    170        call GETENV("input_gfs",input_gfs)
+    171        write(*,*) "input_gfs= ", input_gfs
+
+Page 4           Source Listing                  _unnamed_main$_$BLK
+2017-03-22 17:31                                 rdgrib.f90
+
+    172 !
+    173        call GETENV("input_ecmwf",input_ecmwf)
+    174        write(*,*) "input_ecmwf= ", input_ecmwf
+    175 !
+    176        call GETENV("input_ges",input_ges)
+    177        write(*,*) "input_ges= ", input_ges
+    178 !
+    179        print*,'idim,jdim  ',idim,jdim
+    180 
+    181        ALLOCATE (tbias(nlev),zbias(nlev),wbias(nlev), STAT=istatusb)
+    182        ALLOCATE (trms(nlev),zrms(nlev),wrms(nlev), STAT=istatusr)
+    183        ALLOCATE (hgt(idim,jdim,nlev), temp(idim,jdim,nlev), uwind(idim,jdim,nlev), vwind(idim,jdim,nlev), rh(idim,jdim,nlev)
+    183 , STAT=status)
+    184        If (status .ne. 0 ) THEN
+    185            write(*,*) "Allocation is not successful! Stop here."
+    186            stop
+    187        END IF 
+    188 
+    189        ALLOCATE (hgte(idim,jdim,nlev), tempe(idim,jdim,nlev), uwinde(idim,jdim,nlev), vwinde(idim,jdim,nlev), rhe(idim,jdim,
+    189 nlev), STAT=status)
+    190        If (status .ne. 0 ) THEN
+    191            write(*,*) "Allocation is not successful! Stop here."
+    192            stop
+    193        END IF
+    194 
+    195        ALLOCATE (hgtg(idim,jdim,nlev), tempg(idim,jdim,nlev), uwindg(idim,jdim,nlev), vwindg(idim,jdim,nlev), rhg(idim,jdim,
+    195 nlev), STAT=status)
+    196        If (status .ne. 0 ) THEN
+    197            write(*,*) "Allocation is not successful! Stop here."
+    198            stop
+    199        END IF
+    200 
+    201        ALLOCATE (hgtd(idim,jdim,nlev), tempd(idim,jdim,nlev), windd(idim,jdim,nlev),  rhd(idim,jdim,nlev), STAT=status)
+    202        If (status .ne. 0 ) THEN
+    203            write(*,*) "Allocation is not successful! Stop here."
+    204            stop
+    205        END IF
+    206 
+    207        ALLOCATE (hgtdg(idim,jdim,nlev), tempdg(idim,jdim,nlev), winddg(idim,jdim,nlev),  rhdg(idim,jdim,nlev), STAT=status)
+    208        If (status .ne. 0 ) THEN
+    209            write(*,*) "Allocation is not successful! Stop here."
+    210            stop
+    211        END IF
+    212 
+    213        ALLOCATE (hgtdeg(idim,jdim,nlev), tempdeg(idim,jdim,nlev), winddeg(idim,jdim,nlev),  rhdeg(idim,jdim,nlev), STAT=stat
+    213 us)
+    214        If (status .ne. 0 ) THEN
+    215            write(*,*) "Allocation is not successful! Stop here."
+    216            stop
+    217        END IF
+    218 
+    219        ALLOCATE (spressa(idim,jdim),spresse(idim,jdim),spressg(idim,jdim), STAT=status)
+    220        If (status .ne. 0 ) THEN
+    221            write(*,*) "Allocation is not successful! Stop here."
+    222            stop
+    223        END IF
+    224 
+
+Page 5           Source Listing                  _unnamed_main$_$BLK
+2017-03-22 17:31                                 rdgrib.f90
+
+    225        ALLOCATE (presstl(idim,jdim),presszl(idim,jdim), STAT=status)
+    226        If (status .ne. 0 ) THEN
+    227            write(*,*) "Allocation is not successful! Stop here."
+    228            stop
+    229        END IF
+    230 
+    231 !  Read GFS grib data and store them in hgt, temp, uwind, vwind, rh
+    232        lu = 11
+    233        leng = LEN_TRIM(input_gfs)
+    234        write(*,*)  leng, input_gfs
+    235        CALL read_grib(lu, input_gfs, leng, idim, jdim, nlev, hgt, temp, uwind, vwind, rh, spressa, ierr) 
+    236        Print*,'ierr=  ', ierr
+    237        write(*,313) spressa(1,1),spressa(359,1),spressa(1,181),spressa(359,181)
+    238  313   format('Surf Press Test Values ',4(' ',E13.4))
+    239 
+    240 !  Read ECMWF grib data and store them in hgte, tempe, uwinde, vwinde, rhe
+    241        lu = 12
+    242        leng = LEN_TRIM(input_ecmwf)
+    243        write(*,*)  leng, input_ecmwf
+    244        CALL read_grib(lu, input_ecmwf, leng, idim, jdim, nlev, hgte, tempe, uwinde, vwinde, rhe, spresse, ierr)
+    245        Print*,'ierr=  ', ierr
+    246        write(*,313) spresse(1,1),spresse(359,1),spresse(1,181),spresse(359,181)
+    247 
+    248 !  Read GES grib data and store them in hgtg, tempg, uwindg, vwindg, rhg
+    249        lu = 13
+    250        leng = LEN_TRIM(input_ges)
+    251        write(*,*)  leng, input_ges
+    252        CALL read_grib(lu, input_ges, leng, idim, jdim, nlev, hgtg, tempg, uwindg, vwindg, rhg, spressg, ierr)
+    253        Print*,'ierr=  ', ierr
+    254        write(*,313) spressg(1,1),spressg(359,1),spressg(1,181),spressg(359,181)
+    255 
+    256        rmspe=0.0
+    257        rmspa=0.0
+    258        nrmspe=0
+    259        nrmspa=0
+    260        pdifemax=0.0
+    261        pdifamax=0.0
+    262 
+    263        DO i = 1, idim
+    264        DO j = 1, jdim
+    265        spressa(i,j)=.01*spressa(i,j)  ! convert surface press to hPa
+    266        spressg(i,j)=.01*spressg(i,j)  ! convert surface press to hPa
+    267        spresse(i,j)=.01*spresse(i,j)  ! convert surface press to hPa
+    268        pmin=1200.0
+    269        difpa=abs(spressa(i,j)-spressg(i,j))
+    270        difpe=abs(spresse(i,j)-spressa(i,j))
+    271        if(spressa(i,j) .lt. pmin) pmin=spressa(i,j)
+    272        if(spresse(i,j) .lt. pmin) pmin=spresse(i,j)
+    273        if(spressg(i,j) .lt. pmin) pmin=spressg(i,j)
+    274        presszl(i,j)=pmin+50.0  ! do not use heights with P higher than presszl
+    275        presstl(i,j)=pmin-10.0  ! do not use temps or winds with P higher than presstl
+    276 
+    277        if(difpa .lt. 50.0) then
+    278        nrmspa=nrmspa+1
+    279        rmspa=rmspa+difpa*difpa
+    280        if(difpa .gt. pdifamax) then
+    281        pdifamax=difpa
+
+Page 6           Source Listing                  _unnamed_main$_$BLK
+2017-03-22 17:31                                 rdgrib.f90
+
+    282        ipdifamax=i
+    283        jpdifamax=j
+    284        endif
+    285        endif
+    286 
+    287        if(difpe .lt. 50.0) then
+    288        nrmspe=nrmspe+1
+    289        rmspe=rmspe+difpe*difpe
+    290        if(difpe .gt. pdifemax) then
+    291        pdifemax=difpe
+    292        ipdifemax=i
+    293        jpdifemax=j
+    294        endif
+    295        endif
+    296 
+    297        ENDDO
+    298        ENDDO
+    299 
+    300        rmspe=sqrt(rmspe/float(nrmspe))
+    301        rmspa=sqrt(rmspa/float(nrmspa))
+    302        i1=ipdifamax
+    303        j1=jpdifamax
+    304        i2=ipdifemax
+    305        j2=jpdifemax
+    306        write(*,209) nrmspa,nrmspe,rmspa,rmspe,i1,j1,pdifamax,i2,j2,pdifemax
+    307  209   format('Surface Pdif stats=',2I8,2F8.1,2(2I6,F7.1))
+    308 
+    309 ! calculate pressure thickness array play based on mandatory thickness levels
+    310        DO k = 2, nlev -1
+    311        play(k)=0.0050*float(nlevs(k+1) - nlevs(k-1))
+    312        ENDDO
+    313        play(1)=0.20
+    314        play(14)=.375
+    315 
+    316        DO k = 1, nlev
+    317        WRITE(*,126) k,nlevs(k),play(k),pwgtz(k)
+    318        ENDDO
+    319  126   FORMAT('k, nlevs, play, pwgtz= ',I2,' ',I6,' ',2F7.2)
+    320 
+    321 ! calculate average cosine weights, skip poles in this loop
+    322        DO j = 2, jdim -1
+    323        ang1=pi*float(91-(j+1))/180.0
+    324        ang2=pi*float(91-(j-1))/180.0
+    325        w1=sin(ang1)
+    326        w2=sin(ang2)
+    327        wlat(j)=abs(w1-w2)
+    328        lat=91-j
+    329        WRITE(*,127) j,lat,wlat(j),w1,w2
+    330        ENDDO
+    331  127   FORMAT('j,lat, wlat, sin1 sin2= ',2i3,' ',3F9.4)
+    332 
+    333 ! calculate average cosine weights, at poles, j=1 and 181
+    334        ang1=pi*float(91-1)/180.0   ! is equivalent to 90 degrees
+    335        ang2=pi*float(91-2)/180.0
+    336        w1=sin(ang1)
+    337        w2=sin(ang2)
+    338        wlat(1)=abs(w1-w2)
+
+Page 7           Source Listing                  _unnamed_main$_$BLK
+2017-03-22 17:31                                 rdgrib.f90
+
+    339        wlat(181)=wlat(1)
+    340        j=1
+    341        lat=91-j
+    342        WRITE(*,127) j,lat,wlat(j),w1,w2
+    343 
+    344        DO k = 1, nlev
+    345        DO i = 1, idim
+    346        DO j = 1, jdim
+    347             hgtd(i,j,k) = hgte(i,j,k) - hgt(i,j,k)
+    348             tempd(i,j,k) = tempe(i,j,k) - temp(i,j,k)
+    349             wx = (uwind(i,j,k) - uwinde(i,j,k))**2 + (vwind(i,j,k) - vwinde(i,j,k))**2
+    350             windd(i,j,k)=sqrt(wx)
+    351             rhd(i,j,k) = 0
+    352             hgtdg(i,j,k) = hgt(i,j,k) - hgtg(i,j,k)
+    353             tempdg(i,j,k) = temp(i,j,k) - tempg(i,j,k)
+    354             wx = (uwind(i,j,k) - uwindg(i,j,k))**2 + (vwind(i,j,k) - vwindg(i,j,k))**2
+    355             winddg(i,j,k)=sqrt(wx)
+    356             rhdg(i,j,k) = 0
+    357             hgtdeg(i,j,k) = hgte(i,j,k) - hgtg(i,j,k)
+    358             tempdeg(i,j,k) = tempe(i,j,k) - tempg(i,j,k)
+    359             wx = (uwinde(i,j,k) - uwindg(i,j,k))**2 + (vwinde(i,j,k) - vwindg(i,j,k))**2
+    360             winddeg(i,j,k)=sqrt(wx)
+    361             rhdeg(i,j,k) = 0
+    362        END DO
+    363        END DO
+    364        END DO 
+    365 
+    366 
+    367        101 FORMAT(3I5, 5F10.2)
+    368 
+    369        DO k = 1, nlev
+    370        iplev=nlevs(k)
+    371        tbias(k)=0.0 
+    372        zbias(k)=0.0 
+    373        wbias(k)=0.0 
+    374        trms(k)=0.0 
+    375        zrms(k)=0.0 
+    376        wrms(k)=0.0
+    377        tmax=0.0 
+    378        wmax=0.0 
+    379        zmax=0.0 
+    380        DO i = 1, idim
+    381        DO j = 1, jdim
+    382        lat=91-j
+    383          dz=hgtd(i,j,k)
+    384          dt=tempd(i,j,k)
+    385          dw=windd(i,j,k)
+    386          dzg=hgtdg(i,j,k)
+    387          dzeg=hgtdeg(i,j,k)
+    388          dtg=tempdg(i,j,k)
+    389          dteg=tempdeg(i,j,k)
+    390          dwg=winddg(i,j,k)
+    391          dweg=winddeg(i,j,k)
+    392          tbias(k)=tbias(k)+dt
+    393          zbias(k)=zbias(k)+dz
+    394          wbias(k)=wbias(k)+dw
+    395          trms(k)=trms(k)+dt*dt
+
+Page 8           Source Listing                  _unnamed_main$_$BLK
+2017-03-22 17:31                                 rdgrib.f90
+
+    396          zrms(k)=zrms(k)+dz*dz
+    397          wrms(k)=wrms(k)+dw*dw
+    398 
+    399          dzw=pwgtz(k)*abs(dz)
+    400          if(dzw .gt. 30.0 .and. float(iplev) .lt. presstl(i,j)) then
+    401 !        if(pwgtz(k)*abs(dz) .gt. 60.0) then
+    402 !        call gribdifs(difsz,dmax,dmin,numz,hgtd,wlat,play,0,i,j,k,nlevs,presstl)
+    403 ! argument 1, output difsz is the integrated height differences about point i,j,k 
+    404 ! argument 2, output dmax is the maximum height differences about point i,j,k 
+    405 ! argument 3, output dmin is the minimum height differences about point i,j,k 
+    406 ! argument 4, output numz is the number of points used in the integration
+    407 ! argument 13, input presszl is press limit for underground or not
+    408 ! argument 12, input nlevs  is array of pressure levels of gribfiles
+    409 ! argument 11, input k is vertical lev index
+    410 ! argument 10, input j is latitude index
+    411 ! argument 9, input i is longitude index
+    412 ! argument 8, input is number of vertical levs above and below curret level k to use
+    413 ! argument 7, input play is the measure of the pressure layer thickness
+    414 ! argument 6, input wlat is the measure of the N-S distance for the grib box centered at i j
+    415 ! argument 5, input hgtd is an array of height differences
+    416          call gribdifs(difsz,dmax,dmin,numz,hgtd,wlat,play,2,i,j,k,nlevs,presstl)
+    417          nzext1=nzext1+1
+    418          zext1p(nzext1)=iplev
+    419          zext1i(nzext1)=i
+    420          zext1j(nzext1)=j
+    421          zext1k(nzext1)=k
+    422          zext1id(nzext1)=difsz
+    423          zext1vd(nzext1)=dz
+    424          zext1gd(nzext1)=dzg
+    425          zext1mx(nzext1)=dmax
+    426          zext1mn(nzext1)=dmin
+    427          write(*,301) iplev,i,lat,dz,dzw,dzg,dzeg,dmax,dmin,difsz,numz
+    428        301 FORMAT('Z',' ',3I5, 7F7.1,' ',I5)
+    429          ENDIF
+    430 
+    431          izatest=0
+    432          if(pwgtza(k)*abs(dzg) .gt. 25.0) then
+    433 !        if(pwgtza(k)*abs(dzg) .gt. 30.0) then
+    434          if(pwgtza(k)*abs(dzg) .gt. 60.0) izatest=izatest+1
+    435 
+    436 !         if(dzg .lt. 0.0 .and. dzeg .gt. -10.0) then
+    437           if(dzg .lt. 0.0 .and. (dzg-dzeg) .lt. -30.0) then
+    438           izatest=izatest+1
+    439        401 FORMAT('AZ',' ',3I5, 6F8.1)
+    440           endif
+    441 
+    442           if(dzg .gt. 0.0 .and. (dzg-dzeg) .gt. 30.0) then
+    443           izatest=izatest+1
+    444           endif
+    445 
+    446           if(izatest .gt. 0 .and. float(iplev) .lt. presstl(i,j)) then 
+    447           write(*,401) iplev,i,lat,hgt(i,j,k),hgtg(i,j,k),hgte(i,j,k),dzg,dz,dzeg
+    448 ! compute volumetric difs and store possible output points
+    449           call gribdifs(difszg,dmax,dmin,numz,hgtdg,wlat,play,2,i,j,k,nlevs,presstl)
+    450 !         call gribdifs(difszeg,dmax,dmin,numz,hgtdeg,wlat,play,2,i,j,k,,nlevs,presstl)
+    451           nzexta1=nzexta1+1
+    452           zexta1p(nzexta1)=iplev
+
+Page 9           Source Listing                  _unnamed_main$_$BLK
+2017-03-22 17:31                                 rdgrib.f90
+
+    453           zexta1i(nzexta1)=i
+    454           zexta1j(nzexta1)=j
+    455           zexta1k(nzexta1)=k
+    456           zexta1id(nzexta1)=difszg
+    457           zexta1vd(nzexta1)=dzg
+    458           zexta1mx(nzexta1)=dmax
+    459           zexta1mn(nzexta1)=dmin
+    460           zexta1ed(nzexta1)=dzeg
+    461           endif
+    462 
+    463          ENDIF  ! endif for  pwgtza(k)*abs(dzg) .gt. 30.0
+    464 
+    465          dtw=pwgtt(k)*abs(dt)
+    466          if(dtw .gt. 5.0 .and. float(iplev) .lt. presstl(i,j)) then
+    467 !        call gribdifs(difstg,dmax,dmin,numt,tempd,wlat,play,0,i,j,k,nlevs,presstl)
+    468          call gribdifs(difst,dmax,dmin,numt,tempd,wlat,play,2,i,j,k,nlevs,presstl)
+    469          ntext1=ntext1+1
+    470          text1p(ntext1)=iplev
+    471          text1i(ntext1)=i
+    472          text1j(ntext1)=j
+    473          text1k(ntext1)=k
+    474          text1id(ntext1)=difst
+    475          text1vd(ntext1)=dt
+    476          text1mx(ntext1)=dmax
+    477          text1mn(ntext1)=dmin
+    478          text1gd(ntext1)=dtg
+    479          write(*,302) iplev,i,lat,dt,dtw,dtg,dteg,difst,dmax,dmin,numt
+    480        302 FORMAT('T',' ',3I5, 7F7.1,' ',I5)
+    481          ENDIF
+    482 
+    483          itatest=0
+    484          if(pwgtta(k)*abs(dtg) .gt. 2.0) then
+    485          if(pwgtta(k)*abs(dtg) .gt. 6.0) itatest=itatest+1
+    486 
+    487           if(dtg .lt. 0.0 .and. (dtg-dteg) .lt. -2.5) then
+    488           itatest=itatest+1
+    489        402 FORMAT('AT',' ',3I5, 6F8.1)
+    490           endif
+    491 
+    492           if(dtg .gt. 0.0 .and. (dtg-dteg) .gt. 2.5) then
+    493           itatest=itatest+1
+    494           endif
+    495 
+    496           if(itatest .gt. 0 .and. float(iplev) .lt. presstl(i,j)) then 
+    497           write(*,402) iplev,i,lat,temp(i,j,k),tempg(i,j,k),tempe(i,j,k),dtg,dt,dteg
+    498 ! compute volumetric difs and store possible output points
+    499           call gribdifs(difstg,dmax,dmin,numt,tempdg,wlat,play,2,i,j,k,nlevs,presstl)
+    500 !         call gribdifs(difsteg,dmax,dmin,numt,tempdeg,wlat,play,2,i,j,k,nlevs,presstl)
+    501           ntexta1=ntexta1+1
+    502           texta1p(ntexta1)=iplev
+    503           texta1i(ntexta1)=i
+    504           texta1j(ntexta1)=j
+    505           texta1k(ntexta1)=k
+    506           texta1id(ntexta1)=difstg
+    507 !         texta1id(ntexta1)=difstg-difsteg
+    508           texta1vd(ntexta1)=dtg
+    509           texta1mx(ntexta1)=dmax
+
+Page 10          Source Listing                  _unnamed_main$_$BLK
+2017-03-22 17:31                                 rdgrib.f90
+
+    510           texta1mn(ntexta1)=dmin
+    511           texta1ed(ntexta1)=dteg
+    512           endif
+    513 
+    514          ENDIF  ! endif for  pwgtta(k)*abs(dtg) .gt. 2.0
+    515 
+    516          dww=pwgtw(k)*dw
+    517          if(dww .gt. 20.0 .and. float(iplev) .lt. presstl(i,j)) then
+    518 !        call gribdifs(difsw,dmax,dmin,numw,windd,wlat,play,0,i,j,k,nlevs,presstl)
+    519          call gribdifs(difsw,dmax,dmin,numw,windd,wlat,play,2,i,j,k,nlevs,presstl)
+    520          nwext1=nwext1+1
+    521          wext1p(nwext1)=iplev
+    522          wext1i(nwext1)=i
+    523          wext1j(nwext1)=j
+    524          wext1k(nwext1)=k
+    525          wext1id(nwext1)=difsw
+    526          wext1vd(nwext1)=dw
+    527          wext1mx(nwext1)=dmax
+    528          wext1mn(nwext1)=dmin
+    529          wext1gd(nwext1)=dwg
+    530          write(*,303) iplev,i,lat,dw,dww,dwg,dweg,difsw,dmax,dmin,numw
+    531        303 FORMAT('W',' ',3I5, 7F7.1,' ',I5)
+    532          ENDIF
+    533 
+    534          iwatest=0
+    535          if(dwg .gt. 12.0 .and. dweg .lt. 6.0) iwatest=iwatest+1
+    536          if(dwg .gt. 18.0 ) iwatest=iwatest+1
+    537          if(iwatest .gt. 0 .and. float(iplev) .lt. presstl(i,j)) then
+    538 
+    539           write(*,403) iplev,i,lat,dwg,dw,dweg
+    540        403 FORMAT('AW',' ',3I5, 3F8.1)
+    541 ! compute volumetric difs and store possible output points
+    542           call gribdifs(difswg,dmax,dmin,numw,winddg,wlat,play,2,i,j,k,nlevs,presstl)
+    543           nwexta1=nwexta1+1
+    544           write(*,903) iplev,i,lat,dwg,dw,dweg,difswg,dmax,dmin
+    545        903 FORMAT('AWPLUS',' ',3I5, 6F8.1)
+    546           wexta1p(nwexta1)=iplev
+    547           wexta1i(nwexta1)=i
+    548           wexta1j(nwexta1)=j
+    549           wexta1k(nwexta1)=k
+    550           wexta1id(nwexta1)=difswg
+    551           wexta1vd(nwexta1)=dwg
+    552           wexta1mx(nwexta1)=dmax
+    553           wexta1mn(nwexta1)=dmin
+    554           wexta1ed(nwexta1)=dweg
+    555 
+    556          ENDIF  ! endif for  iwatest .gt. 0
+    557 
+    558          if(abs(dz) .gt. zmax) zmax=abs(dz) 
+    559          if(abs(dt) .gt. tmax) tmax=abs(dt) 
+    560          if(dw .gt. wmax) wmax=dw 
+    561        END DO   ! for lat loop on j
+    562        END DO   ! for lon loop on i
+    563 
+    564        tbias(k)=tbias(k)/65160.0
+    565        zbias(k)=zbias(k)/65160.0
+    566        wbias(k)=wbias(k)/65160.0
+
+Page 11          Source Listing                  _unnamed_main$_$BLK
+2017-03-22 17:31                                 rdgrib.f90
+
+    567        vart=trms(k)/65160.0 - tbias(k)*tbias(k)
+    568        tstd=sqrt(vart)
+    569        trms(k)=sqrt(trms(k)/65160.0)
+    570        varz=zrms(k)/65160.0 - zbias(k)*zbias(k)
+    571        zstd=sqrt(varz)
+    572        zrms(k)=sqrt(zrms(k)/65160.0)
+    573        varw=wrms(k)/65160.0 - wbias(k)*wbias(k)
+    574        wstd=sqrt(varw)
+    575        wrms(k)=sqrt(wrms(k)/65160.0)
+    576        write(*,501) k,zbias(k),zstd,zrms(k),zmax
+    577        write(*,502) k,tbias(k),tstd,trms(k),tmax
+    578        write(*,503) k,wbias(k),wstd,wrms(k),wmax
+    579        501 FORMAT('STAT Z',' ',I3, 4F10.2)
+    580        502 FORMAT('STAT T',' ',I3, 4F10.2)
+    581        503 FORMAT('STAT W',' ',I3, 4F10.2)
+    582 
+    583        END DO    ! for vertical loop on k
+    584 
+    585 !! start finding height extremes for output
+    586  605   continue
+    587 
+    588        IF(nzext1 .gt. 0) then
+    589        zextmax=0.0
+    590        DO n=1,nzext1
+    591        IF(zext1id(n) .GT. zextmax) then
+    592        zextmax= zext1id(n)
+    593        dzmax= zext1vd(n)
+    594        dzmaxt= zext1mx(n)
+    595        dzmint= zext1mn(n)
+    596        dgzmax= zext1gd(n)
+    597        izmax=zext1i(n)
+    598        jzmax=zext1j(n)
+    599        latm=91-jzmax
+    600        kzmax=zext1k(n)
+    601        lzmax=zext1p(n)
+    602        ENDIF
+    603        ENDDO
+    604        nzmaxout=nzmaxout+1
+    605  905   format(i4)
+    606        write(cleva,905) lzmax
+    607        cleva=clevs(kzmax)
+    608        call gribdifs(difsw,dmax,dmin,numw,windd,wlat,play,2,izmax,jzmax,kzmax,nlevs,presstl)
+    609        write(*,601) nzmaxout,izmax,latm,lzmax,dzmax,dgzmax,dzmaxt,dzmint,zextmax,difsw,dmax,dmin
+    610        ngemouta=ngemouta+1
+    611        ngemoutz=ngemoutz+1
+    612        icol=2
+    613        if(abs(zextmax) .gt. 90.0) icol=1
+    614        ilong=izmax
+    615        if(izmax .gt. 180.) ilong= izmax -360  ! ilong is longitude for gempak
+    616        write(55,801) ngemouta,cleva,latm,ilong,zextmax,icol 
+    617  801   format(I4,' ','Z',A4,2('  ',I4),F7.1,' 1  88  ',I2)
+    618        write(60,201) ngemouta,cleva,latm,izmax
+    619  201   format('Z  ',I2,'  ',A4,2('  ',I4))
+    620        ENDIF
+    621  601   format('EmNMAXZ=',4I5,' ',8F7.1)
+    622 
+    623        nzext2=0
+
+Page 12          Source Listing                  _unnamed_main$_$BLK
+2017-03-22 17:31                                 rdgrib.f90
+
+    624        IF(nzext1 .gt. 1) then
+    625        DO n=1,nzext1
+    626        i1=zext1i(n)
+    627        j1=zext1j(n)
+    628 ! find spherical distance in KM output in dist from point 1 to 2 by calling grib_dist
+    629 ! point 1 has lon lat from i1 j1   point two has lon lat from izmax jzmax
+    630        call grib_dist(dist,i1,j1,izmax,jzmax)
+    631        lzp=zext1p(n)
+    632        IF(dist .gt. 1500.0 .or. iabs(lzp-lzmax) .GT. 400) then
+    633        nzext2=nzext2+1
+    634        zext2i(nzext2)=zext1i(n)
+    635        zext2j(nzext2)=zext1j(n)
+    636        zext2k(nzext2)=zext1k(n)
+    637        zext2p(nzext2)=zext1p(n)
+    638        zext2id(nzext2)=zext1id(n)
+    639        zext2vd(nzext2)=zext1vd(n)
+    640        zext2mx(nzext2)=zext1mx(n)
+    641        zext2mn(nzext2)=zext1mn(n)
+    642        zext2gd(nzext2)=zext1gd(n)
+    643        ENDIF
+    644        ENDDO
+    645        ENDIF
+    646 
+    647        IF(nzext2 .gt. 0) then
+    648        DO n=1,nzext2
+    649        zext1i(n)=zext2i(n)
+    650        zext1j(n)=zext2j(n)
+    651        zext1k(n)=zext2k(n)
+    652        zext1p(n)=zext2p(n)
+    653        zext1id(n)=zext2id(n)
+    654        zext1vd(n)=zext2vd(n)
+    655        zext1mx(n)=zext2mx(n)
+    656        zext1mn(n)=zext2mn(n)
+    657        zext1gd(n)=zext2gd(n)
+    658        ENDDO
+    659        nzext1=nzext2
+    660        IF(nzmaxout .LT. 3) GO TO 605
+    661        ENDIF
+    662 !! end finding height extremes for output
+    663 
+    664 !! start finding analysis-ges height extremes for output
+    665  705   continue
+    666 
+    667        IF(nzexta1 .gt. 0) then
+    668        zextamax=0.0
+    669        DO n=1,nzexta1
+    670        IF(zexta1id(n) .GT. zextamax) then
+    671        zextamax= zexta1id(n)
+    672        dzmax= zexta1vd(n)
+    673        dzmaxt= zexta1mx(n)
+    674        dzmint= zexta1mn(n)
+    675        dezmax= zexta1ed(n)
+    676        izmax=zexta1i(n)
+    677        latm=91 - zexta1j(n)
+    678        jzmax=zexta1j(n)
+    679        kzmax=zexta1k(n)
+    680        lzmax=zexta1p(n)
+
+Page 13          Source Listing                  _unnamed_main$_$BLK
+2017-03-22 17:31                                 rdgrib.f90
+
+    681        ENDIF
+    682        ENDDO
+    683        nzmaxaout=nzmaxaout+1
+    684        call gribdifs(difswg,dmax,dmin,numw,winddg,wlat,play,2,izmax,jzmax,kzmax,nlevs,presstl)
+    685        write(*,701) nzmaxaout,izmax,latm,lzmax,dzmax,dezmax,dzmaxt,dzmint,zextamax,difswg,dmax,dmin
+    686        ngemouta=ngemouta+1
+    687        ngemoutz=ngemoutz+1
+    688        icol=2
+    689        if(abs(zextamax) .gt. 50.0) icol=1
+    690        ilong=izmax
+    691        if(izmax .gt. 180.) ilong= izmax -360  ! ilong is longitude for gempak
+    692        write(cleva,905) lzmax
+    693        cleva=clevs(kzmax)
+    694        write(55,801) ngemouta,cleva,latm,ilong,zextamax,icol 
+    695        write(60,201) ngemouta,cleva,latm,izmax
+    696        ENDIF
+    697  701   format('AmGMAXZ=',4I5,' ',8F7.1)
+    698 
+    699        nzexta2=0
+    700        IF(nzexta1 .gt. 1) then
+    701        DO n=1,nzexta1
+    702        i1=zexta1i(n)
+    703        j1=zexta1j(n)
+    704 ! find spherical distance in KM output in dist from point 1 to 2 by calling grib_dist
+    705 ! point 1 has lon lat from i1 j1   point two has lon lat from izmax jzmax
+    706        call grib_dist(dist,i1,j1,izmax,jzmax)
+    707        lzp=zexta1p(n)
+    708        IF(dist .gt. 1500.0 .or. iabs(lzp-lzmax) .GT. 400) then
+    709 !      IF(dist .gt. 3000.0 .or. iabs(lzp-lzmax) .GT. 400) then
+    710        nzexta2=nzexta2+1
+    711        zexta2i(nzexta2)=zexta1i(n)
+    712        zexta2j(nzexta2)=zexta1j(n)
+    713        zexta2k(nzexta2)=zexta1k(n)
+    714        zexta2p(nzexta2)=zexta1p(n)
+    715        zexta2id(nzexta2)=zexta1id(n)
+    716        zexta2vd(nzexta2)=zexta1vd(n)
+    717        zexta2mx(nzexta2)=zexta1mx(n)
+    718        zexta2mn(nzexta2)=zexta1mn(n)
+    719        zexta2ed(nzexta2)=zexta1ed(n)
+    720        ENDIF
+    721        ENDDO
+    722        ENDIF
+    723 
+    724        IF(nzexta2 .gt. 0) then
+    725        DO n=1,nzexta2
+    726        zexta1i(n)=zexta2i(n)
+    727        zexta1j(n)=zexta2j(n)
+    728        zexta1k(n)=zexta2k(n)
+    729        zexta1p(n)=zexta2p(n)
+    730        zexta1id(n)=zexta2id(n)
+    731        zexta1vd(n)=zexta2vd(n)
+    732        zexta1mx(n)=zexta2mx(n)
+    733        zexta1mn(n)=zexta2mn(n)
+    734        zexta1ed(n)=zexta2ed(n)
+    735        ENDDO
+    736        nzexta1=nzexta2
+    737        IF(nzmaxaout .LT. 3) GO TO 705
+
+Page 14          Source Listing                  _unnamed_main$_$BLK
+2017-03-22 17:31                                 rdgrib.f90
+
+    738 !      IF(nzmaxaout .LT. 6) GO TO 705
+    739        ENDIF
+    740 !! end finding analysis minus ges height extremes for output
+    741 
+    742 !! start finding temperature extremes for output
+    743  606   continue
+    744 
+    745        IF(ntext1 .gt. 0) then
+    746        textmax=0.0
+    747        DO n=1,ntext1
+    748        IF(text1id(n) .GT. textmax) then
+    749        textmax= text1id(n)
+    750        dtmax= text1vd(n)
+    751        dtmaxt= text1mx(n)
+    752        dtmint= text1mn(n)
+    753        dgtmax= text1gd(n)
+    754        itmax=text1i(n)
+    755        jtmax=text1j(n)
+    756        latm=91-jtmax
+    757        ktmax=text1k(n)
+    758        ltmax=text1p(n)
+    759        ENDIF
+    760        ENDDO
+    761        ntmaxout=ntmaxout+1
+    762        call gribdifs(difsw,dmax,dmin,numw,windd,wlat,play,2,itmax,jtmax,ktmax,nlevs,presstl)
+    763        write(*,602) ntmaxout,itmax,latm,ltmax,dtmax,dgtmax,dtmaxt,dtmint,textmax,difsw,dmax,dmin
+    764        ngemouta=ngemouta+1
+    765        ngemoutt=ngemoutt+1
+    766        icol=2
+    767        if(abs(textmax) .gt. 5.0) icol=1
+    768        ilong=itmax
+    769        if(itmax .gt. 180.) ilong= itmax -360  ! ilong is longitude for gempak
+    770        write(cleva,905) ltmax
+    771        cleva=clevs(ktmax)
+    772        write(55,802) ngemouta,cleva,latm,ilong,textmax,icol 
+    773  802   format(I4,' ','T',A4,2('  ',I4),F7.1,' 1  88  ',I2)
+    774        write(60,202) ngemouta,cleva,latm,itmax
+    775  202   format('T  ',I2,'  ',A4,2('  ',I4))
+    776        ENDIF
+    777  602   format('EmNMAXT=',4I5,' ',8F7.1)
+    778 
+    779        ntext2=0
+    780        IF(ntext1 .gt. 1) then
+    781        DO n=1,ntext1
+    782        i1=text1i(n)
+    783        j1=text1j(n)
+    784        call grib_dist(dist,i1,j1,itmax,jtmax)
+    785        ltp=text1p(n)
+    786        IF(dist .gt. 1500.0 .or. iabs(ltp-ltmax) .GT. 400) then
+    787        ntext2=ntext2+1
+    788        text2i(ntext2)=text1i(n)
+    789        text2j(ntext2)=text1j(n)
+    790        text2k(ntext2)=text1k(n)
+    791        text2p(ntext2)=text1p(n)
+    792        text2id(ntext2)=text1id(n)
+    793        text2vd(ntext2)=text1vd(n)
+    794        text2mx(ntext2)=text1mx(n)
+
+Page 15          Source Listing                  _unnamed_main$_$BLK
+2017-03-22 17:31                                 rdgrib.f90
+
+    795        text2mn(ntext2)=text1mn(n)
+    796        text2gd(ntext2)=text1gd(n)
+    797        ENDIF
+    798        ENDDO
+    799        ENDIF
+    800 
+    801        IF(ntext2 .gt. 0) then
+    802        DO n=1,ntext2
+    803        text1i(n)=text2i(n)
+    804        text1j(n)=text2j(n)
+    805        text1k(n)=text2k(n)
+    806        text1p(n)=text2p(n)
+    807        text1id(n)=text2id(n)
+    808        text1vd(n)=text2vd(n)
+    809        text1mx(n)=text2mx(n)
+    810        text1mn(n)=text2mn(n)
+    811        text1gd(n)=text2gd(n)
+    812        ENDDO
+    813        ntext1=ntext2
+    814        IF(ntmaxout .LT. 3) GO TO 606
+    815        ENDIF
+    816 !! end finding temperature extremes for output
+    817 
+    818 !! start finding analysis-ges temp extremes for output
+    819  706   continue
+    820 
+    821        IF(ntexta1 .gt. 0) then
+    822        textamax=0.0
+    823        DO n=1,ntexta1
+    824        IF(texta1id(n) .GT. textamax) then
+    825        textamax= texta1id(n)
+    826        dtmax= texta1vd(n)
+    827        dtmaxt= texta1mx(n)
+    828        dtmint= texta1mn(n)
+    829        detmax= texta1ed(n)
+    830        itmax=texta1i(n)
+    831        latm=91 - texta1j(n)
+    832        jtmax=texta1j(n)
+    833        ktmax=texta1k(n)
+    834        ltmax=texta1p(n)
+    835        ENDIF
+    836        ENDDO
+    837        ntmaxaout=ntmaxaout+1
+    838        call gribdifs(difswg,dmax,dmin,numw,winddg,wlat,play,2,itmax,jtmax,ktmax,nlevs,presstl)
+    839        write(*,702) ntmaxaout,itmax,latm,ltmax,dtmax,detmax,dtmaxt,dtmint,textamax,difswg,dmax,dmin
+    840        ngemouta=ngemouta+1
+    841        ngemoutt=ngemoutt+1
+    842        icol=2
+    843        if(abs(textamax) .gt. 5.0) icol=1
+    844        ilong=itmax
+    845        if(itmax .gt. 180.) ilong= itmax -360  ! ilong is longitude for gempak
+    846        write(cleva,905) ltmax
+    847        cleva=clevs(ktmax)
+    848        write(55,802) ngemouta,cleva,latm,ilong,textamax,icol 
+    849        write(60,202) ngemouta,cleva,latm,itmax
+    850        ENDIF
+    851  702   format('AmGMAXT=',4I5,' ',8F7.1)
+
+Page 16          Source Listing                  _unnamed_main$_$BLK
+2017-03-22 17:31                                 rdgrib.f90
+
+    852 
+    853        ntexta2=0
+    854        IF(ntexta1 .gt. 1) then
+    855        DO n=1,ntexta1
+    856        i1=texta1i(n)
+    857        j1=texta1j(n)
+    858 ! find spherical distance in KM output in dist from point 1 to 2 by calling grib_dist
+    859 ! point 1 has lon lat from i1 j1   point two has lon lat from itmax jtmax
+    860        call grib_dist(dist,i1,j1,itmax,jtmax)
+    861        lzp=texta1p(n)
+    862        IF(dist .gt. 1500.0 .or. iabs(lzp-ltmax) .GT. 400) then
+    863        ntexta2=ntexta2+1
+    864        texta2i(ntexta2)=texta1i(n)
+    865        texta2j(ntexta2)=texta1j(n)
+    866        texta2k(ntexta2)=texta1k(n)
+    867        texta2p(ntexta2)=texta1p(n)
+    868        texta2id(ntexta2)=texta1id(n)
+    869        texta2vd(ntexta2)=texta1vd(n)
+    870        texta2mx(ntexta2)=texta1mx(n)
+    871        texta2mn(ntexta2)=texta1mn(n)
+    872        texta2ed(ntexta2)=texta1ed(n)
+    873        ENDIF
+    874        ENDDO
+    875        ENDIF
+    876 
+    877        IF(ntexta2 .gt. 0) then
+    878        DO n=1,ntexta2
+    879        texta1i(n)=texta2i(n)
+    880        texta1j(n)=texta2j(n)
+    881        texta1k(n)=texta2k(n)
+    882        texta1p(n)=texta2p(n)
+    883        texta1id(n)=texta2id(n)
+    884        texta1vd(n)=texta2vd(n)
+    885        texta1mx(n)=texta2mx(n)
+    886        texta1mn(n)=texta2mn(n)
+    887        texta1ed(n)=texta2ed(n)
+    888        ENDDO
+    889        ntexta1=ntexta2
+    890        IF(ntmaxaout .LT. 3) GO TO 706
+    891        ENDIF
+    892 !! end finding analysis minus ges temp extremes for output
+    893 
+    894 !! start finding wind extremes for output
+    895  607   continue
+    896 
+    897        IF(nwext1 .gt. 0) then
+    898        wextmax=0.0
+    899        DO n=1,nwext1
+    900        IF(wext1id(n) .GT. wextmax) then
+    901        wextmax= wext1id(n)
+    902        dwmax= wext1vd(n)
+    903        dwmaxt= wext1mx(n)
+    904        dwmint= wext1mn(n)
+    905        dgwmax= wext1gd(n)
+    906        iwmax=wext1i(n)
+    907        jwmax=wext1j(n)
+    908        latm=91-wext1j(n)
+
+Page 17          Source Listing                  _unnamed_main$_$BLK
+2017-03-22 17:31                                 rdgrib.f90
+
+    909        kwmax=wext1k(n)
+    910        lwmax=wext1p(n)
+    911        ENDIF
+    912        ENDDO
+    913        nwmaxout=nwmaxout+1
+    914        call gribdifs(difsz,dmax,dmin,numz,hgtd,wlat,play,2,iwmax,jwmax,kwmax,nlevs,presstl)
+    915        write(*,603) nwmaxout,iwmax,latm,lwmax,dwmax,dgwmax,dwmaxt,dwmint,wextmax,difsz,dmax,dmin
+    916        ngemouta=ngemouta+1
+    917        ngemoutw=ngemoutw+1
+    918        icol=2
+    919        if(abs(wextmax) .gt. 30.0) icol=1
+    920        ilong=iwmax
+    921        if(iwmax .gt. 180.) ilong= iwmax -360  ! ilong is longitude for gempak
+    922        write(cleva,905) lwmax
+    923        cleva=clevs(kwmax)
+    924        write(55,803) ngemouta,cleva,latm,ilong,wextmax,icol 
+    925  803   format(I4,' ','W',A4,2('  ',I4),F7.1,' 1  88  ',I2)
+    926        write(60,203) ngemouta,cleva,latm,iwmax
+    927  203   format('W  ',I2,'  ',A4,2('  ',I4))
+    928        ENDIF
+    929  603   format('EmNMAXW=',4I5,' ',8F7.1)
+    930 
+    931        nwext2=0
+    932        IF(nwext1 .gt. 1) then
+    933        DO n=1,nwext1
+    934        i1=wext1i(n)
+    935        j1=wext1j(n)
+    936        call grib_dist(dist,i1,j1,iwmax,jwmax)
+    937        lwp=wext1p(n)
+    938        IF(dist .gt. 1500.0 .or. iabs(lwp-lwmax) .GT. 400) then
+    939        nwext2=nwext2+1
+    940        wext2i(nwext2)=wext1i(n)
+    941        wext2j(nwext2)=wext1j(n)
+    942        wext2k(nwext2)=wext1k(n)
+    943        wext2p(nwext2)=wext1p(n)
+    944        wext2id(nwext2)=wext1id(n)
+    945        wext2vd(nwext2)=wext1vd(n)
+    946        wext2mx(nwext2)=wext1mx(n)
+    947        wext2mn(nwext2)=wext1mn(n)
+    948        wext2gd(nwext2)=wext1gd(n)
+    949        ENDIF
+    950        ENDDO
+    951        ENDIF
+    952 
+    953        IF(nwext2 .gt. 0) then
+    954        DO n=1,nwext2
+    955        wext1i(n)=wext2i(n)
+    956        wext1j(n)=wext2j(n)
+    957        wext1k(n)=wext2k(n)
+    958        wext1p(n)=wext2p(n)
+    959        wext1id(n)=wext2id(n)
+    960        wext1vd(n)=wext2vd(n)
+    961        wext1mx(n)=wext2mx(n)
+    962        wext1mn(n)=wext2mn(n)
+    963        wext1gd(n)=wext2gd(n)
+    964        ENDDO
+    965        nwext1=nwext2
+
+Page 18          Source Listing                  _unnamed_main$_$BLK
+2017-03-22 17:31                                 rdgrib.f90
+
+    966        IF(nwmaxout .LT. 3) GO TO 607
+    967        ENDIF
+    968 !! end finding wind extremes for output
+    969 
+    970 !! start finding analysis-ges wind extremes for output
+    971  707   continue
+    972 
+    973        IF(nwexta1 .gt. 0) then
+    974        wextamax=0.0
+    975        DO n=1,nwexta1
+    976        IF(wexta1id(n) .GT. wextamax) then
+    977        wextamax= wexta1id(n)
+    978        dwmax= wexta1vd(n)
+    979        dwmaxt= wexta1mx(n)
+    980        dwmint= wexta1mn(n)
+    981        dewmax= wexta1ed(n)
+    982        iwmax=wexta1i(n)
+    983        latm=91 - wexta1j(n)
+    984        jwmax=wexta1j(n)
+    985        kwmax=wexta1k(n)
+    986        lwmax=wexta1p(n)
+    987        ENDIF
+    988        ENDDO
+    989        nwmaxaout=nwmaxaout+1
+    990        call gribdifs(difszg,dmax,dmin,numz,hgtdg,wlat,play,2,iwmax,jwmax,kwmax,nlevs,presstl)
+    991        write(*,703) nwmaxaout,iwmax,latm,lwmax,dwmax,dewmax,dwmaxt,dwmint,wextamax,difszg,dmax,dmin
+    992        ngemouta=ngemouta+1
+    993        ngemoutw=ngemoutw+1
+    994        icol=2
+    995        if(abs(wextamax) .gt. 20.0) icol=1
+    996        ilong=iwmax
+    997        if(iwmax .gt. 180.) ilong= iwmax -360  ! ilong is longitude for gempak
+    998        write(cleva,905) lwmax
+    999        cleva=clevs(kwmax)
+   1000        write(55,803) ngemouta,cleva,latm,ilong,wextamax,icol 
+   1001        write(60,203) ngemouta,cleva,latm,iwmax
+   1002        ENDIF
+   1003  703   format('AmGMAXW=',4I5,' ',8F7.1)
+   1004 
+   1005        nwexta2=0
+   1006        IF(nwexta1 .gt. 1) then
+   1007        DO n=1,nwexta1
+   1008        i1=wexta1i(n)
+   1009        j1=wexta1j(n)
+   1010 ! find spherical distance in KM output in dist from point 1 to 2 by calling grib_dist
+   1011 ! point 1 has lon lat from i1 j1   point two has lon lat from itmax jtmax
+   1012        call grib_dist(dist,i1,j1,iwmax,jwmax)
+   1013        lzp=wexta1p(n)
+   1014        IF(dist .gt. 1500.0 .or. iabs(lzp-lwmax) .GT. 400) then
+   1015        nwexta2=nwexta2+1
+   1016        wexta2i(nwexta2)=wexta1i(n)
+   1017        wexta2j(nwexta2)=wexta1j(n)
+   1018        wexta2k(nwexta2)=wexta1k(n)
+   1019        wexta2p(nwexta2)=wexta1p(n)
+   1020        wexta2id(nwexta2)=wexta1id(n)
+   1021        wexta2vd(nwexta2)=wexta1vd(n)
+   1022        wexta2mx(nwexta2)=wexta1mx(n)
+
+Page 19          Source Listing                  _unnamed_main$_$BLK
+2017-03-22 17:31                                 rdgrib.f90
+
+   1023        wexta2mn(nwexta2)=wexta1mn(n)
+   1024        wexta2ed(nwexta2)=wexta1ed(n)
+   1025        ENDIF
+   1026        ENDDO
+   1027        ENDIF
+   1028 
+   1029        IF(nwexta2 .gt. 0) then
+   1030        DO n=1,nwexta2
+   1031        wexta1i(n)=wexta2i(n)
+   1032        wexta1j(n)=wexta2j(n)
+   1033        wexta1k(n)=wexta2k(n)
+   1034        wexta1p(n)=wexta2p(n)
+   1035        wexta1id(n)=wexta2id(n)
+   1036        wexta1vd(n)=wexta2vd(n)
+   1037        wexta1mx(n)=wexta2mx(n)
+   1038        wexta1mn(n)=wexta2mn(n)
+   1039        wexta1ed(n)=wexta2ed(n)
+   1040        ENDDO
+   1041        nwexta1=nwexta2
+   1042        IF(nwmaxaout .LT. 3) GO TO 707
+   1043        ENDIF
+   1044 !! end finding analysis minus ges wind extremes for output
+   1045 
+   1046        stop
+   1047        end
+
+
+ENTRY POINTS
+
+  Name              
+                    
+ MAIN__             
+
+Page 20          Source Listing                  _unnamed_main$_$BLK
+2017-03-22 17:31 Subprograms/Common Blocks       rdgrib.f90
+
+
+
+SUBPROGRAMS/COMMON BLOCKS
+
+ Name                       Object Declared Type            Bytes Dimen Elements Attributes       References                        
+                                                                                                                                    
+ <Main Program>                    84                                                                                               
+
+COMPILER OPTIONS BEING USED
+
+       -align nocommons                      -align nodcommons
+       -align noqcommons                     -align records
+       -align nosequence                     -align norec1byte
+       -align norec2byte                     -align norec4byte
+       -align norec8byte                     -align norec16byte
+       -altparam                             -assume accuracy_sensitive
+       -assume nobscc                        -assume nobuffered_io
+       -assume nobyterecl                    -assume nocc_omp
+       -assume nocstring                     -assume nodummy_aliases
+       -assume nofpe_summary                 -assume noieee_fpe_flags
+       -assume nominus0                      -assume noold_boz
+       -assume old_unit_star                 -assume old_ldout_format
+       -assume noold_logical_ldio            -assume old_maxminloc
+       -assume old_xor                       -assume protect_constants
+       -assume noprotect_parens              -assume split_common
+       -assume source_include                -assume nostd_intent_in
+       -assume nostd_mod_proc_name           -assume norealloc_lhs
+       -assume underscore                    -assume no2underscores
+  no   -auto                                 -auto_scalar
+  no   -bintext                              -ccdefault default
+       -check args                           -check arg_temp_created
+       -check bounds                         -check format
+       -check nooutput_conversion            -check overflow
+       -check pointers                       -check power
+       -check shape                          -check underflow
+       -check uninitialized                  -coarray-num-procs 0
+  no   -coarray-config-file                  -convert big_endian
+       -cross_reference                      -D __INTEL_COMPILER=1210
+       -D __unix__                           -D __unix
+       -D __linux__                          -D __linux
+       -D __gnu_linux__                      -D unix
+       -D linux                              -D __ELF__
+       -D __x86_64                           -D __x86_64__
+       -D _MT                                -D __INTEL_COMPILER_BUILD_DATE=20120612
+       -D __i686                             -D __i686__
+       -D __pentiumpro                       -D __pentiumpro__
+       -D __pentium4                         -D __pentium4__
+       -D __tune_pentium4__                  -D __SSE2__
+       -D __SSE__                            -D __MMX__
+       -double_size 64                  no   -d_lines
+  no   -Qdyncom                              -error_limit 30
+  no   -f66                             no   -f77rtl
+  no   -fast                                 -fpscomp nofilesfromcmd
+       -fpscomp nogeneral                    -fpscomp noioformat
+       -fpscomp noldio_spacing               -fpscomp nologicals
+  no   -fpconstant                           -fpe3
+       -fprm nearest                    no   -ftz
+
+Page 21          Source Listing                  _unnamed_main$_$BLK
+2017-03-22 17:31                                 rdgrib.f90
+
+       -fp_model noprecise                   -fp_model fast
+       -fp_model nostrict                    -fp_model nosource
+       -fp_model nodouble                    -fp_model noextended
+       -fp_model novery_fast                 -fp_model noexcept
+       -fp_model nono_except                 -heap_arrays 0
+  no   -threadprivate_compat                 -free
+       -g2                                   -iface nomixed_str_len_arg
+       -iface nono_mixed_str_len_arg         -init nan
+       -init nozero                     no   -intconstant
+       -integer_size 32                 no   -mixed_str_len_arg
+  no   -module                               -names lowercase
+  no   -noinclude                            -O2
+  no   -pad_source                           -real_size 32
+  no   -recursive                            -reentrancy none
+  no   -sharable_localsaves                  -vec=simd
+       -show noinclude                       -show map
+       -show options                    no   -syntax_only
+  no   -threadcom                       no   -U
+  no   -vms                                  -w noall
+       -w nonone                             -w alignments
+       -w noargument_checking                -w nodeclarations
+       -w general                            -w noignore_bounds
+       -w noignore_loc                       -w nointerfaces
+       -w notruncated_source                 -w uncalled
+       -w uninitialized                      -w nounused
+       -w usage
+
+       -includepath : /gpfs/gp1/usrx/local/intel/composer_xe_2011_sp1.11.339/compiler/include/,.f,./.f,/usrx/local/intel/composerxe/mkl/include/.f,
+           /usrx/local/intel/composerxe/tbb/include/.f,/gpfs/gp1/usrx/local/intel/composer_xe_2011_sp1.11.339/compiler/include/intel64/.f,
+           /gpfs/gp1/usrx/local/intel/composer_xe_2011_sp1.11.339/compiler/include/.f,/usr/local/include/.f,/usr/lib/gcc/x86_64-redhat-linux/4.4.7/include/.f,
+           /usr/include/.f,/usr/include/.f
+       -list filename : rdgrib.lst
+       -o    filename : none
+
+COMPILER: Intel(R) Fortran 12.1-2100

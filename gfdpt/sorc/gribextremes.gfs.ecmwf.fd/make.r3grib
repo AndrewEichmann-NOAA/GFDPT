@@ -1,0 +1,39 @@
+SHELL=/bin/sh
+#
+SRCS=	r3grib.f90 read_grib.f90 grib_dist.f90 
+#
+OBJS=	r3grib.o  read_grib.o  grib_dist.o
+#
+FC =		ncepxlf90 -C -O -bloadmap:comp_mess
+LDFLAGS = 	-lessl   -qsmp=noauto
+#
+LIBS=	-L/nwprod/lib -lw3_8 -lsp_8 -lbacio_8
+#
+CMD =	r3grib.x	
+PROFLIB =	-lprof
+#
+# MAKEFILE OPTIONS: KRISHNA KUMAR
+#
+FFLAGS = -g -qnoescape -qintsize=8 -qrealsize=8 -qctyplss -qmaxmem=-1
+
+# Lines from here on down should not need to be changed.  They are the
+# actual rules which make uses to build a.out.
+#
+all:            $(CMD)
+
+$(CMD):         $(OBJS)
+	$(FC) $(LDFLAGS) -o $(@) $(OBJS) $(LIBS) 
+
+# Make the profiled version of the command and call it a.out.prof
+#
+$(CMD).prof:    $(OBJS)
+	$(FC) $(LDFLAGS) -o $(@) $(OBJS) $(LIBS) 
+
+clean:
+	-rm -f $(OBJS)
+
+clobber:        clean
+	-rm -f $(CMD) $(CMD).prof
+
+void:   clobber
+	-rm -f $(SRCS) makefile

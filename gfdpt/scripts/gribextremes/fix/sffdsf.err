@@ -1,0 +1,24 @@
+!	SNPDSN error file 
+!
++2	! Creating a GEMPAK file.
++1	! End of input file.
+-1	! Fatal error initializing TAE.
+-2	! Fatal error reading TAE parameters.
+-3	! Error opening model sounding file !AS .
+-4	! Error opening sounding parameter file.
+-5	! Wrong number of sounding parms in output file.
+-6	! Wrong sounding parameters in output file.
+-7	! Cannot create a new sounding data file.
+-8	! Error opening surface parameter file.
+-9	! Wrong number of surface parms in output file.
+-10	! Wrong surface parameters in output file.
+-11	! Cannot create a new surface data file.
+-12	! Error reading input file.
+-13	! Packing file not opened.
+-14	! Different SND parm count in input file.
+-15	! Different SFC parm count in input file.
+-16	! Cannot add SND time.
+-17	! Cannot add SFC time.
+-18	! Cannot add SND station.
+-19	! Cannot add SFC station.
+-20	! Invalid station list type.

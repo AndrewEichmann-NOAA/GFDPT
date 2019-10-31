@@ -1,0 +1,185 @@
+Page 1           Source Listing                  GRIBDIFS
+2017-03-22 17:31                                 gribdifs.f90
+
+      1 SUBROUTINE gribdifs(difs,dmax,dmin,num,hgt,wlat,play,np,i,j,k,nlevs,pressl)
+      2 !******************************************************
+      3 !
+      4        dimension hgt(360,181,14)
+      5        dimension pressl(360,181)
+      6        dimension wlat(181),play(14),nlevs(14)
+      7        difs=0.0
+      8        dmax=-999.9
+      9        dmin=999.9
+     10        num=0
+     11        kmax=k+np
+     12        kmin=k-np
+     13        if(kmax .gt. 14) kmax=14
+     14        if(kmin .lt. 1) kmin=1
+     15 
+     16        jmax=j+5
+     17        jmin=j-5
+     18        if(jmax .gt. 181) jmax=181
+     19        if(jmin .lt. 1) jmin=1
+     20 
+     21        do kk=kmin,kmax
+     22        plev=float(nlevs(k))
+     23        do jj=jmin,jmax
+     24        do ii=1,360
+     25        if(plev .lt. pressl(ii,jj)) then
+     26        call grib_dist(dist,ii,jj,i,j)
+     27        if(dist .le. 500.0) then
+     28        difs=difs+play(kk)*wlat(jj)*hgt(ii,jj,kk)*hgt(ii,jj,kk)
+     29        if(hgt(ii,jj,kk) .gt. dmax) dmax=hgt(ii,jj,kk)
+     30        if(hgt(ii,jj,kk) .lt. dmin) dmin=hgt(ii,jj,kk)
+     31        num=num+1
+     32        endif
+     33        endif
+     34        enddo
+     35        enddo
+     36        enddo
+     37        difs=sqrt(difs)
+     38        RETURN
+     39        END SUBROUTINE gribdifs
+
+Page 2           Source Listing                  GRIBDIFS
+2017-03-22 17:31 Entry Points                    gribdifs.f90
+
+
+
+ENTRY POINTS
+
+  Name                 
+                       
+ gribdifs_             
+
+
+SYMBOL CROSS REFERENCE
+
+ Name                       Object Declared Type            Bytes Dimen Elements Attributes       References                        
+                                                                                                                                    
+ DIFS                       Dummy  1        R(4)            4           scalar   ARG,INOUT        7,28,37                           
+ DIST                       Local  26       R(4)            4           scalar                    26,27                             
+ DMAX                       Dummy  1        R(4)            4           scalar   ARG,INOUT        8,29                              
+ DMIN                       Dummy  1        R(4)            4           scalar   ARG,INOUT        9,30                              
+ FLOAT                      Func   22                                   scalar                    22                                
+ GRIBDIFS                   Subr   1                                                                                                
+ GRIB_DIST                  Subr   26                                                             26                                
+ HGT                        Dummy  1        R(4)            4     3     912240   ARG,INOUT        28,29,30                          
+ I                          Dummy  1        I(4)            4           scalar   ARG,INOUT        26                                
+ II                         Local  24       I(4)            4           scalar                    24,25,26,28,29,30                 
+ J                          Dummy  1        I(4)            4           scalar   ARG,INOUT        16,17,26                          
+ JJ                         Local  23       I(4)            4           scalar                    23,25,26,28,29,30                 
+ JMAX                       Local  16       I(4)            4           scalar                    16,18,23                          
+ JMIN                       Local  17       I(4)            4           scalar                    17,19,23                          
+ K                          Dummy  1        I(4)            4           scalar   ARG,INOUT        11,12,22                          
+ KK                         Local  21       I(4)            4           scalar                    21,28,29,30                       
+ KMAX                       Local  11       I(4)            4           scalar                    11,13,21                          
+ KMIN                       Local  12       I(4)            4           scalar                    12,14,21                          
+ NLEVS                      Dummy  1        I(4)            4     1     14       ARG,INOUT        22                                
+ NP                         Dummy  1        I(4)            4           scalar   ARG,INOUT        11,12                             
+ NUM                        Dummy  1        I(4)            4           scalar   ARG,INOUT        10,31                             
+ PLAY                       Dummy  1        R(4)            4     1     14       ARG,INOUT        28                                
+ PLEV                       Local  22       R(4)            4           scalar                    22,25                             
+ PRESSL                     Dummy  1        R(4)            4     2     65160    ARG,INOUT        25                                
+ SQRT                       Func   37                                   scalar                    37                                
+ WLAT                       Dummy  1        R(4)            4     1     181      ARG,INOUT        28                                
+
+Page 3           Source Listing                  GRIBDIFS
+2017-03-22 17:31 Subprograms/Common Blocks       gribdifs.f90
+
+
+
+SUBPROGRAMS/COMMON BLOCKS
+
+ Name                       Object Declared Type            Bytes Dimen Elements Attributes       References                        
+                                                                                                                                    
+ GRIBDIFS                   Subr   1                                                                                                
+
+COMPILER OPTIONS BEING USED
+
+       -align nocommons                      -align nodcommons
+       -align noqcommons                     -align records
+       -align nosequence                     -align norec1byte
+       -align norec2byte                     -align norec4byte
+       -align norec8byte                     -align norec16byte
+       -altparam                             -assume accuracy_sensitive
+       -assume nobscc                        -assume nobuffered_io
+       -assume nobyterecl                    -assume nocc_omp
+       -assume nocstring                     -assume nodummy_aliases
+       -assume nofpe_summary                 -assume noieee_fpe_flags
+       -assume nominus0                      -assume noold_boz
+       -assume old_unit_star                 -assume old_ldout_format
+       -assume noold_logical_ldio            -assume old_maxminloc
+       -assume old_xor                       -assume protect_constants
+       -assume noprotect_parens              -assume split_common
+       -assume source_include                -assume nostd_intent_in
+       -assume nostd_mod_proc_name           -assume norealloc_lhs
+       -assume underscore                    -assume no2underscores
+  no   -auto                                 -auto_scalar
+  no   -bintext                              -ccdefault default
+       -check args                           -check arg_temp_created
+       -check bounds                         -check format
+       -check nooutput_conversion            -check overflow
+       -check pointers                       -check power
+       -check shape                          -check underflow
+       -check uninitialized                  -coarray-num-procs 0
+  no   -coarray-config-file                  -convert big_endian
+       -cross_reference                      -D __INTEL_COMPILER=1210
+       -D __unix__                           -D __unix
+       -D __linux__                          -D __linux
+       -D __gnu_linux__                      -D unix
+       -D linux                              -D __ELF__
+       -D __x86_64                           -D __x86_64__
+       -D _MT                                -D __INTEL_COMPILER_BUILD_DATE=20120612
+       -D __i686                             -D __i686__
+       -D __pentiumpro                       -D __pentiumpro__
+       -D __pentium4                         -D __pentium4__
+       -D __tune_pentium4__                  -D __SSE2__
+       -D __SSE__                            -D __MMX__
+       -double_size 64                  no   -d_lines
+  no   -Qdyncom                              -error_limit 30
+  no   -f66                             no   -f77rtl
+  no   -fast                                 -fpscomp nofilesfromcmd
+       -fpscomp nogeneral                    -fpscomp noioformat
+       -fpscomp noldio_spacing               -fpscomp nologicals
+  no   -fpconstant                           -fpe3
+       -fprm nearest                    no   -ftz
+
+Page 4           Source Listing                  GRIBDIFS
+2017-03-22 17:31                                 gribdifs.f90
+
+       -fp_model noprecise                   -fp_model fast
+       -fp_model nostrict                    -fp_model nosource
+       -fp_model nodouble                    -fp_model noextended
+       -fp_model novery_fast                 -fp_model noexcept
+       -fp_model nono_except                 -heap_arrays 0
+  no   -threadprivate_compat                 -free
+       -g2                                   -iface nomixed_str_len_arg
+       -iface nono_mixed_str_len_arg         -init nan
+       -init nozero                     no   -intconstant
+       -integer_size 32                 no   -mixed_str_len_arg
+  no   -module                               -names lowercase
+  no   -noinclude                            -O2
+  no   -pad_source                           -real_size 32
+  no   -recursive                            -reentrancy none
+  no   -sharable_localsaves                  -vec=simd
+       -show noinclude                       -show map
+       -show options                    no   -syntax_only
+  no   -threadcom                       no   -U
+  no   -vms                                  -w noall
+       -w nonone                             -w alignments
+       -w noargument_checking                -w nodeclarations
+       -w general                            -w noignore_bounds
+       -w noignore_loc                       -w nointerfaces
+       -w notruncated_source                 -w uncalled
+       -w uninitialized                      -w nounused
+       -w usage
+
+       -includepath : /gpfs/gp1/usrx/local/intel/composer_xe_2011_sp1.11.339/compiler/include/,.f,./.f,/usrx/local/intel/composerxe/mkl/include/.f,
+           /usrx/local/intel/composerxe/tbb/include/.f,/gpfs/gp1/usrx/local/intel/composer_xe_2011_sp1.11.339/compiler/include/intel64/.f,
+           /gpfs/gp1/usrx/local/intel/composer_xe_2011_sp1.11.339/compiler/include/.f,/usr/local/include/.f,/usr/lib/gcc/x86_64-redhat-linux/4.4.7/include/.f,
+           /usr/include/.f,/usr/include/.f
+       -list filename : gribdifs.lst
+       -o    filename : none
+
+COMPILER: Intel(R) Fortran 12.1-2100

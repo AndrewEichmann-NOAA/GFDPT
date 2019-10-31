@@ -1,0 +1,4 @@
+./generate_extanl_pages.py > ../webout/foo
+cat ../templates/template_extanldiff_tab.php > ../main/extanldiff_tab.php
+cat ../webout/foo >> ../main/extanldiff_tab.php
+
