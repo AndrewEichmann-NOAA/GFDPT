@@ -1,9 +1,9 @@
 # .bashrc
 
 # Source global definitions
-if [ -f /etc/bashrc ]; then
-	. /etc/bashrc
-fi
+#if [ -f /etc/bashrc ]; then
+	. /etc/bash.bashrc
+#fi
 
 #module load ibmpe lsf GrADS hpss NetCDF/3.6.3
 #module load ics/12.1

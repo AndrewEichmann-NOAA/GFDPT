@@ -1,17 +1,20 @@
 #!/bin/sh
 set -x
 
-#source ~/.bashrc # this needs to be stripped down to essentials
+. /etc/bash.bashrc
 
+source ~/.bashrc # this needs to be stripped down to essentials
+
+#module load ncep
 
 export PRODDEV=dev
 
 
 export basespdy=`date +%Y%m%d`
-export basespdy=20190827
+#export basespdy=
 
 
-export GFDPTDIR=/gpfs/hps3/emc/global/noscrub/Andrew.Eichmann/GFDPT/code/$PRODDEV/
+export GFDPTDIR=/gpfs/hps3/emc/global/noscrub/Andrew.Eichmann/GFDPT/code/$PRODDEV/EMC_gfdpt/gfdpt/
 export GFDPTSCRIPTDIR=$GFDPTDIR/scripts
 export TEMPLATESDIR=$GFDPTDIR/templates
 
@@ -44,15 +47,37 @@ export spdy12z=`$NDATE -12 $spdy00z`
 
 #module load lsf # for bjobs
 
-sh $GFDPTSCRIPTDIR/GFDPT-ffcorr.sh
+
+makeup=$FFCORRDIR/missingdates
+rm ${makeup}
+#
+#python getter.py
+#
+#while IFS= read -r date
+#do
+#   export spdy=`echo $date | cut -b 1-8`
+#   echo $date
+#   echo $spdy
+#   sh $GFDPTSCRIPTDIR/GFDPT-ffcorr.sh >& $GFDPTTMPDIR/${spdy}.out &
+##   sh $GFDPTSCRIPTDIR/GFDPT-ffcorr.sh 
+#done < "$makeup"
+#
+#sleep 1m
+#
+#
+spdy=$basespdy
+sh $GFDPTSCRIPTDIR/GFDPT-ffcorr.sh 
+
 #exit
+
+
 sh $GFDPTSCRIPTDIR/GFDPT-ffplot.sh
 #exit
 sh $GFDPTSCRIPTDIR/GFDPT-ffcorr-makeweb.sh
 #exit
 
 sh $GFDPTSCRIPTDIR/GFDPT-gribext.sh
-#exit
+exit
 
 
 sh $GFDPTSCRIPTDIR/GFDPT-run-plotrad.sh

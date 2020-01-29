@@ -1,10 +1,12 @@
 #!/bin/sh
 set -x
 
+export NDATE=/gpfs/hps3/emc/global/noscrub/Fanglin.Yang/VRFY/vsdb/nwprod/util/exec/ndate
 
 if [ "$cyc" -eq '12' ]; then
 #AFEauto  export spdycyc=`/nwprod/util/exec/ndate -24 $(date +%Y%m%d)$cyc`
-  export spdycyc=`/nwprod/util/exec/ndate -24 $spdy$cyc`
+#  export spdycyc=`/nwprod/util/exec/ndate -24 $spdy$cyc`
+  export spdycyc=`$NDATE -24 $spdy$cyc`
   export spdy=`echo $spdycyc | cut -c1-8`
 fi
 

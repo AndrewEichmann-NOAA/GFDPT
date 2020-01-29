@@ -6,15 +6,15 @@ from subprocess import call
 
 #indir=os.environ['FFCORRDIR']
 indir='/gpfs/hps3/emc/global/noscrub/Andrew.Eichmann/GFDPT/data/dev/ffcorr'
-#spdy=os.environ['spdy']
-spdy='20191031'
+spdy=os.environ['spdy']
+#spdy='20191101'
 oneday = timedelta( days = 1 )
 
 filename = 'missingdates'
 
 enddate00 = date( int(spdy[0:4]), int(spdy[4:6]), int(spdy[6:8]) )
 enddate12 = enddate00 - oneday
-startdate = enddate00 - timedelta(days=10)
+startdate = enddate00 - timedelta( days=60 )
 
 if not os.path.isdir(indir): 
    print('slronk')
@@ -23,6 +23,7 @@ os.chdir(indir)
 
 
 listdir = os.listdir(indir)
+listdir.sort()
                                 
 print(listdir)
 missing=[]
@@ -36,11 +37,9 @@ while cdatetime <= enddate00:
    print cdate
    if cdate not in listdir:
       missing.append(cdate)
-   f.write(cdate + '\n')
+      f.write(cdate + '\n')
    cdatetime += oneday
-     
+
 f.close()
 print(missing)
-
-#for cdatetime in (startdate - timedelta(n-1) for n in range(daycount,0,-1)):
 
