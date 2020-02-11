@@ -34,6 +34,7 @@ export REMOTEWEBUSER=aeichmann
 export REMOTEWEBSERVER=vm-lnx-emcrzdm01.ncep.noaa.gov
 
 export NDATE=/gpfs/hps3/emc/global/noscrub/Fanglin.Yang/VRFY/vsdb/nwprod/util/exec/ndate
+export COPYGB=/gpfs/hps3/emc/global/noscrub/Fanglin.Yang/VRFY/vsdb/nwprod/util/exec/copygb
 export LS=/bin/ls
 
 export DATASOURCES="amsua_n15 amsua_n18 amsua_n19 amsua_metop-a amsua_metop-b atms_npp"
@@ -77,11 +78,11 @@ sh $GFDPTSCRIPTDIR/GFDPT-ffcorr-makeweb.sh
 #exit
 
 sh $GFDPTSCRIPTDIR/GFDPT-gribext.sh
-exit
+#exit
 
 
 sh $GFDPTSCRIPTDIR/GFDPT-run-plotrad.sh
 
 #exit
-#sh $GFDPTSCRIPTDIR/GFDPT-errorevo.sh
+sh $GFDPTSCRIPTDIR/GFDPT-errorevo.sh
 

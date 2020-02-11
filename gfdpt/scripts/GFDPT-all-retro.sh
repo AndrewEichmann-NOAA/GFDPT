@@ -1,15 +1,17 @@
 #!/bin/sh
 set -x
 
-#source ~/.bashrc # this needs to be stripped down to essentials
+. /etc/bash.bashrc
 
-module load ncep
+source ~/.bashrc # this needs to be stripped down to essentials
+
+#module load ncep
 
 export PRODDEV=dev
 
 
 export basespdy=`date +%Y%m%d`
-export basespdy=20200101
+#export basespdy=
 
 
 export GFDPTDIR=/gpfs/hps3/emc/global/noscrub/Andrew.Eichmann/GFDPT/code/$PRODDEV/EMC_gfdpt/gfdpt/
@@ -32,6 +34,7 @@ export REMOTEWEBUSER=aeichmann
 export REMOTEWEBSERVER=vm-lnx-emcrzdm01.ncep.noaa.gov
 
 export NDATE=/gpfs/hps3/emc/global/noscrub/Fanglin.Yang/VRFY/vsdb/nwprod/util/exec/ndate
+export COPYGB=/gpfs/hps3/emc/global/noscrub/Fanglin.Yang/VRFY/vsdb/nwprod/util/exec/copygb
 export LS=/bin/ls
 
 export DATASOURCES="amsua_n15 amsua_n18 amsua_n19 amsua_metop-a amsua_metop-b atms_npp"
@@ -64,22 +67,22 @@ rm ${makeup}
 #
 #
 spdy=$basespdy
-sh $GFDPTSCRIPTDIR/GFDPT-ffcorr.sh 
-
-exit
-
-
-sh $GFDPTSCRIPTDIR/GFDPT-ffplot.sh
-exit
-sh $GFDPTSCRIPTDIR/GFDPT-ffcorr-makeweb.sh
-#exit
-
-sh $GFDPTSCRIPTDIR/GFDPT-gribext.sh
-exit
-
-
-sh $GFDPTSCRIPTDIR/GFDPT-run-plotrad.sh
+#sh $GFDPTSCRIPTDIR/GFDPT-ffcorr.sh 
 
 #exit
-#sh $GFDPTSCRIPTDIR/GFDPT-errorevo.sh
+
+
+#sh $GFDPTSCRIPTDIR/GFDPT-ffplot.sh
+#exit
+#sh $GFDPTSCRIPTDIR/GFDPT-ffcorr-makeweb.sh
+#exit
+
+#sh $GFDPTSCRIPTDIR/GFDPT-gribext.sh
+#exit
+
+
+#sh $GFDPTSCRIPTDIR/GFDPT-run-plotrad.sh
+
+#exit
+sh $GFDPTSCRIPTDIR/GFDPT-errorevo.sh
 

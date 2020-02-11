@@ -111,7 +111,8 @@ export nplt=`expr $nexp + 1 `             ;#number of panels on each plot, inclu
  echo " ===== nplt number of panels on each plot=$nplt "
 set -A sname none $explist
 set -A fname $fhrlist
-datsrc=/global/noscrub/Fanglin.Yang/stat                ;#directory of source data
+#datsrc=/global/noscrub/Fanglin.Yang/stat                ;#directory of source data
+datsrc=/gpfs/hps3/emc/global/noscrub/Fanglin.Yang/stat   ;#directory of source data
 
 
 export mapair=yes        ;#upper air
@@ -123,7 +124,8 @@ for fhr in $fhrlist; do
 
 ## --find date of forecast hour,  get corresponding analysis 
 export fhour=`echo $fhr |cut -c 2-5 `
-fdate=`/nwprod/util/exec/ndate +$fhour ${CDATE}${cyc}`
+#fdate=`/nwprod/util/exec/ndate +$fhour ${CDATE}${cyc}`
+fdate=`${NDATE} +$fhour ${CDATE}${cyc}`
 anlcyc=`echo $fdate |cut -c 9-10 `
 anlCDATE=`echo $fdate |cut -c 1-8 `
 #JASET
@@ -190,7 +192,7 @@ if [ $var = "VVELprs" ];  then varname="W (mb/hr)"          scal=24*36     trun=
 cat >${var}${lev}_${area}${fhr}_t${cyc}z.gs <<EOF1 
 'reinit'; 'set font 1'
 * --- /global/save/Jordan.Alpert/grads/
-'run /global/save/Dana.Carlis/scripts/grads/initial.gs'
+'run /gpfs/hps3/emc/global/noscrub/Andrew.Eichmann/grads/initial.gs'
                  'open $ctlanl1'; 'open $ctlfcst1'
   if ($nexp >1); 'open $ctlanl2'; 'open $ctlfcst2'; endif
   if ($nexp >2); 'open $ctlanl3'; 'open $ctlfcst3'; endif
@@ -313,7 +315,7 @@ while ( i <= $nplt )
     titly=ymax+0.08
     'set parea 'xmin' 'xmax' 'ymin' 'ymax
 
-    'run /global/save/Dana.Carlis/scripts/grads/rgbset.gs'
+    'run /gpfs/hps3/emc/global/noscrub/Andrew.Eichmann/grads/rgbset.gs'
     'set xlopts 1 4 0.0'
     'set ylopts 1 4 0.0'
       if($nplt <=3)
@@ -402,9 +404,9 @@ endwhile
   'set string 1 bc 6'
   'set strsiz 0.16 0.16'
   if($nexp >1)
-    'run /global/save/Dana.Carlis/scripts/grads/cbarn.gs 0.95 0 4.1 0.28'
+    'run /gpfs/hps3/emc/global/noscrub/Andrew.Eichmann/grads/cbarn.gs 0.95 0 4.1 0.28'
    else
-    'run /global/save/Dana.Carlis/scripts/grads/cbarn.gs 0.95 0 4.1 4.70'
+    'run /gpfs/hps3/emc/global/noscrub/Andrew.Eichmann/grads/cbarn.gs 0.95 0 4.1 4.70'
    endif
 
   'printim ${var}${lev}_${area}${fhr}_t${cyc}z.gif gif x700 y700'

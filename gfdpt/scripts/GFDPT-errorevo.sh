@@ -12,7 +12,7 @@ export fhrlist="f00 f06 f12 f18 f24 f30 f36 f42 f48 f54 f60 f66 f72 f78 f84 f90 
 export cyc="00"
 export arealist="sh"
 
-cd /global/save/Andrew.Eichmann/dropout
+#cd /global/save/Andrew.Eichmann/dropout
 cd $GFDPTSCRIPTDIR/errorevo
 
 ./maps2d_fcstdiff3.sh  $CDATE $arealist  $cyc  "f00 f06 f12 f18 f24 f30 f36 f42 f48 f54 f60 f66 f72 f78 f84 f90 f96 f102 f108 f114 f120" "gfs ecm" $GFDPTDATADIR/errorevo/$CDATE/fcstdiffSH

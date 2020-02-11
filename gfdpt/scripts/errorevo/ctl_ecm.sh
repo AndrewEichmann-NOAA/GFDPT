@@ -19,9 +19,11 @@ mkdir -p ${rundir}/${exp}  ||exit 8
 n=1
 while [ $n -le $ndays ]; do
   hr=`expr $n \* 24 `
-  dd=`/nwprod/util/exec/ndate -$hr ${CDATE}${cyc}`
+#  dd=`/nwprod/util/exec/ndate -$hr ${CDATE}${cyc}`
+  dd=`${NDATE} -$hr ${CDATE}${cyc}`
   if [ -s ${dir0}/${exp}/${tag}.${exp}.$CDATE$cyc ] ;then
-    /nwprod/util/exec/copygb -g2 -x $dir0/${exp}/${tag}.${exp}.$CDATE$cyc ${rundir}/${exp}/${tag}.${exp}.$CDATE$cyc
+#    /nwprod/util/exec/copygb -g2 -x $dir0/${exp}/${tag}.${exp}.$CDATE$cyc ${rundir}/${exp}/${tag}.${exp}.$CDATE$cyc
+    ${COPYGB} -g2 -x $dir0/${exp}/${tag}.${exp}.$CDATE$cyc ${rundir}/${exp}/${tag}.${exp}.$CDATE$cyc
   else
     phr=`echo $tag | cut -c 5-6`
     if [ $phr -ne 00 ] ; then
@@ -29,7 +31,8 @@ while [ $n -le $ndays ]; do
       exit
     else
       tag=pgbf00
-      /nwprod/util/exec/copygb -g2 -x $dir0/${exp}/${tag}.${exp}.$CDATE$cyc ${rundir}/${exp}/${tag}.${exp}.$CDATE$cyc
+#      /nwprod/util/exec/copygb -g2 -x $dir0/${exp}/${tag}.${exp}.$CDATE$cyc ${rundir}/${exp}/${tag}.${exp}.$CDATE$cyc
+      ${COPYGB} -g2 -x $dir0/${exp}/${tag}.${exp}.$CDATE$cyc ${rundir}/${exp}/${tag}.${exp}.$CDATE$cyc
     fi
   fi
 n=`expr $n + 1 `
